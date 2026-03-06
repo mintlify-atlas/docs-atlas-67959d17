@@ -53,7 +53,7 @@ npm start
 
 You should see:
 
-```
+```text
 imitsu server running on port 3100
 Health check: http://localhost:3100/health
 ```
@@ -72,7 +72,7 @@ imitsu register -e you@team.com -n "Your Name"
 
 You'll be prompted to enter a password:
 
-```
+```text
 Password (min 12 chars): 
 Confirm password: 
 Registered! Role: admin
@@ -95,7 +95,7 @@ imitsu login you@team.com
 
 Enter your password:
 
-```
+```text
 Password: 
 Logged in as you@team.com (admin)
 ```
@@ -114,7 +114,7 @@ imitsu set DATABASE_URL "postgresql://user:pass@localhost:5432/mydb"
 
 Output:
 
-```
+```text
 Created: DATABASE_URL
 ```
 
@@ -126,7 +126,7 @@ imitsu set API_KEY
 
 You'll be prompted securely:
 
-```
+```text
 Secret value: 
 Created: API_KEY
 ```
@@ -143,7 +143,7 @@ imitsu get DATABASE_URL
 
 Output:
 
-```
+```text
 postgresql://user:pass@localhost:5432/mydb
 ```
 
@@ -165,7 +165,7 @@ imitsu ls
 
 Output:
 
-```
+```text
 NAME                          CATEGORY       VER   UPDATED
 ──────────────────────────────────────────────────────────────────────
 DATABASE_URL                  general        v1    2026-03-06T10:30:15Z
@@ -228,7 +228,7 @@ npm start
 
 Wait for:
 
-```
+```text
 imitsu server running on port 3100
 Health check: http://localhost:3100/health
 ```
@@ -259,7 +259,7 @@ Use the arrow keys to navigate to **server** in the sidebar and press `Enter`.
 
 Enter the server URL:
 
-```
+```text
 http://localhost:3100
 ```
 
@@ -280,7 +280,7 @@ Press `Tab` to move between fields. Press `Enter` to submit.
 
 You'll see a confirmation:
 
-```
+```text
 Registered! Role: admin
 You are the first user — you've been made admin.
 ```
@@ -306,7 +306,7 @@ Press `Enter` to save.
 
 You'll see your new secret in the list:
 
-```
+```text
 NAME              CATEGORY    VER
 ──────────────────────────────────
 DATABASE_URL      general     v1

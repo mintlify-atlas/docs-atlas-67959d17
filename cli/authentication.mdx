@@ -29,7 +29,7 @@ imitsu server https://vault.example.com
 ```
 
 **Output:**
-```
+```text
 Server set to https://vault.example.com
 ```
 
@@ -61,19 +61,19 @@ imitsu register -e alice@example.com -n "Alice Smith"
 ```
 
 **Interactive prompts:**
-```
+```text
 Password (min 12 chars): 
 Confirm password: 
 ```
 
 **Output:**
-```
+```text
 Registered! Role: user
 ```
 
 **First user:**
 If you're the first user to register, you'll automatically be assigned the admin role:
-```
+```text
 Registered! Role: admin
 You are the first user — you've been made admin.
 ```
@@ -102,12 +102,12 @@ imitsu login alice@example.com
 ```
 
 **Interactive prompt:**
-```
+```text
 Password: 
 ```
 
 **Output:**
-```
+```text
 Logged in as alice@example.com (user)
 ```
 
@@ -120,7 +120,7 @@ imitsu logout
 ```
 
 **Output:**
-```
+```text
 Logged out
 ```
 
@@ -137,12 +137,12 @@ imitsu whoami
 ```
 
 **Output (when logged in):**
-```
+```text
 Alice Smith <alice@example.com> (user)
 ```
 
 **Output (when not logged in):**
-```
+```text
 Not logged in. Run: vault login <email>
 ```
 

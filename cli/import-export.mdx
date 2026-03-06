@@ -59,7 +59,7 @@ imitsu import .env.production
 ```
 
 **Output:**
-```
+```text
 Parsed 6 entries from .env.production (3 sections: application, database, api keys)
 Created: APP_NAME, APP_ENV, DATABASE_URL, DB_PASSWORD, STRIPE_KEY, SENDGRID_KEY
 Done. 6 secrets imported.
@@ -71,7 +71,7 @@ imitsu import .env.staging -t engineering
 ```
 
 **Output:**
-```
+```text
 Parsed 6 entries from .env.staging (3 sections: application, database, api keys)
 Created: APP_NAME, APP_ENV, DATABASE_URL, DB_PASSWORD, STRIPE_KEY, SENDGRID_KEY
 Done. 6 secrets imported.
@@ -82,7 +82,7 @@ Shared with team "engineering" (read access)
 
 If a secret with the same name already exists, it will be updated:
 
-```
+```text
 Parsed 6 entries from .env (2 sections: application, database)
 Updated: DATABASE_URL, DB_PASSWORD
 Created: APP_NAME, APP_ENV
@@ -92,17 +92,17 @@ Done. 4 secrets imported.
 **Errors:**
 
 File not found:
-```
+```text
 File not found: /path/to/.env
 ```
 
 Empty file:
-```
+```text
 No secrets found in file
 ```
 
 Team not found:
-```
+```text
 Team not found: unknown-team. Create it first with: vault team create <name>
 ```
 
@@ -158,7 +158,7 @@ imitsu export .env.backup
 ```
 
 **Output:**
-```
+```text
 Exported 6 secrets to /path/to/.env.backup
 ```
 
@@ -170,7 +170,7 @@ imitsu export .env.db -c database
 ```
 
 **Output:**
-```
+```text
 Exported 2 secrets to /path/to/.env.db
 ```
 
@@ -189,12 +189,12 @@ imitsu export | grep DATABASE
 ```
 
 **Output:**
-```
+```text
 DATABASE_URL=postgresql://localhost/mydb
 ```
 
 **Error (no secrets):**
-```
+```text
 No secrets to export
 ```
 

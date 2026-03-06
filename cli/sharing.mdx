@@ -42,7 +42,7 @@ imitsu share DATABASE_URL -u bob@example.com
 ```
 
 **Output:**
-```
+```text
 Shared "DATABASE_URL" with bob@example.com (read)
 ```
 
@@ -52,7 +52,7 @@ imitsu share API_KEY -u bob@example.com -p write
 ```
 
 **Output:**
-```
+```text
 Shared "API_KEY" with bob@example.com (write)
 ```
 
@@ -62,19 +62,19 @@ imitsu share MASTER_TOKEN -u alice@example.com --permission admin
 ```
 
 **Output:**
-```
+```text
 Shared "MASTER_TOKEN" with alice@example.com (admin)
 ```
 
 **Errors:**
 
 Secret not found:
-```
+```text
 Secret not found: MISSING_KEY
 ```
 
 User not found:
-```
+```text
 User not found: unknown@example.com
 ```
 
@@ -108,7 +108,7 @@ imitsu share-team DATABASE_URL engineering
 ```
 
 **Output:**
-```
+```text
 Secret shared with team successfully
 ```
 
@@ -125,12 +125,12 @@ imitsu share-team DEPLOY_TOKEN devops --permission admin
 **Errors:**
 
 Secret not found:
-```
+```text
 Secret not found: MISSING_KEY
 ```
 
 Team not found:
-```
+```text
 Team not found: unknown-team
 ```
 
@@ -145,7 +145,7 @@ imitsu set NEW_SECRET "value" -t engineering
 ```
 
 **Output:**
-```
+```text
 Created: NEW_SECRET
 Shared with team "engineering" (read access)
 ```

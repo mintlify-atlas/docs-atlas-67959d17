@@ -27,7 +27,7 @@ imitsu team create engineering
 ```
 
 **Output:**
-```
+```text
 Team created: engineering
 ```
 
@@ -55,12 +55,17 @@ imitsu team ls
 ```
 
 **Output:**
-```
+```text
 TEAM                     MEMBERS   CREATED
-───────────────────────────────────────────────────────
+───────────────────────────────────────────────────────────
 engineering              5         2026-03-01T10:00:00Z
 devops                   3         2026-03-02T14:30:00Z
 qa                       2         2026-03-05T09:15:00Z
+```
+
+**Output (no teams):**
+```text
+No teams. Create one: vault team create <name>
 ```
 
 **Output (no teams):**
@@ -102,7 +107,7 @@ imitsu team add engineering bob@example.com
 ```
 
 **Output:**
-```
+```text
 User added to team successfully
 ```
 
@@ -112,7 +117,7 @@ imitsu team add engineering alice@example.com -r admin
 ```
 
 **Output:**
-```
+```text
 User added to team successfully
 ```
 
@@ -124,12 +129,12 @@ imitsu team add devops charlie@example.com --role admin
 **Errors:**
 
 Team not found:
-```
+```text
 Team not found: unknown-team
 ```
 
 User not found:
-```
+```text
 User not found: unknown@example.com
 ```
 
@@ -155,7 +160,7 @@ imitsu team members engineering
 ```
 
 **Output:**
-```
+```text
 Team: engineering
 
 EMAIL                         NAME                ROLE      JOINED
@@ -166,7 +171,7 @@ charlie@example.com           Charlie Davis       member    2026-03-05T14:15:00Z
 ```
 
 **Error (team not found):**
-```
+```text
 Team not found: unknown-team
 ```
 

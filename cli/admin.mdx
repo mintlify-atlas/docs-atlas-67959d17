@@ -31,7 +31,7 @@ imitsu users
 ```
 
 **Output:**
-```
+```text
 EMAIL                         NAME                ROLE      JOINED
 ───────────────────────────────────────────────────────────────────────────
 alice@example.com             Alice Smith         admin     2026-03-01T10:00:00Z
@@ -75,7 +75,7 @@ imitsu audit
 ```
 
 **Output:**
-```
+```text
 TIME                  ACTION              DETAILS
 ───────────────────────────────────────────────────────────────────────────
 2026-03-06T10:30:00Z  secret:create       name=DATABASE_URL
@@ -99,12 +99,17 @@ imitsu audit --limit 50
 ```
 
 **Output (no logs):**
+```text
+No audit logs
 ```
+
+**Output (no logs):**
+```text
 No audit logs
 ```
 
 **Error (non-admin user):**
-```
+```text
 Unauthorized: Admin access required
 ```
 
@@ -222,7 +227,7 @@ imitsu register -e admin@example.com -n "Admin User"
 ```
 
 **Output:**
-```
+```text
 Registered! Role: admin
 You are the first user — you've been made admin.
 ```
@@ -235,7 +240,7 @@ imitsu register -e user@example.com -n "Standard User"
 ```
 
 **Output:**
-```
+```text
 Registered! Role: user
 ```
 
