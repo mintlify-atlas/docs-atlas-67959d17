@@ -1,0 +1,141 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "imitsu",
+  "projectDescription": "A team secret manager with AES-256-GCM encryption, role-based access control, team sharing, and audit logging",
+  "theme": "aspen",
+  "primaryColor": "#10b981",
+  "lightColor": "#34d399",
+  "darkColor": "#059669",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "CLI Reference",
+            "pages": [
+              "cli/authentication",
+              "cli/secrets",
+              "cli/sharing",
+              "cli/teams",
+              "cli/import-export",
+              "cli/admin"
+            ]
+          },
+          {
+            "group": "TUI",
+            "pages": [
+              "tui/overview",
+              "tui/installation",
+              "tui/usage"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/team-workflow",
+              "guides/environment-variables",
+              "guides/security"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/overview",
+              "api/authentication"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api/auth",
+              "api/secrets",
+              "api/teams",
+              "api/audit"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Deployment",
+        "groups": [
+          {
+            "group": "Self-Hosting",
+            "pages": [
+              "deployment/server-setup",
+              "deployment/configuration",
+              "deployment/docker",
+              "deployment/production-checklist"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "AES-256-GCM encryption with per-secret salts and IVs",
+    "Role-based access control (admin/member)",
+    "Team-based secret sharing",
+    "Comprehensive audit logging",
+    "CLI for command-line workflows",
+    "Interactive TUI built with Bubble Tea",
+    "Bulk import/export from .env files",
+    "Secret versioning and history",
+    "Rate limiting (100 req/min per IP)",
+    "JWT authentication with 8-hour expiry",
+    "Argon2id password hashing",
+    "SQLite database with simple deployment"
+  ],
+  "publicApiSurface": [
+    "imitsu register -e <email> -n <name>",
+    "imitsu login <email>",
+    "imitsu logout",
+    "imitsu whoami",
+    "imitsu set <name> [value]",
+    "imitsu get <name>",
+    "imitsu ls",
+    "imitsu rm <name>",
+    "imitsu share <name> -u <email>",
+    "imitsu share-team <secret> <team>",
+    "imitsu team create <name>",
+    "imitsu team ls",
+    "imitsu team add <team> <email>",
+    "imitsu team members <team>",
+    "imitsu import <file>",
+    "imitsu export [file]",
+    "imitsu users",
+    "imitsu audit",
+    "POST /api/auth/register",
+    "POST /api/auth/login",
+    "GET /api/auth/me",
+    "GET /api/auth/users",
+    "POST /api/secrets",
+    "GET /api/secrets",
+    "GET /api/secrets/:id",
+    "PUT /api/secrets/:id",
+    "DELETE /api/secrets/:id",
+    "POST /api/secrets/import",
+    "GET /api/secrets/export",
+    "POST /api/secrets/:id/share",
+    "POST /api/secrets/:id/share-team",
+    "GET /api/secrets/:id/versions",
+    "POST /api/teams",
+    "GET /api/teams",
+    "GET /api/teams/:id",
+    "POST /api/teams/:id/members",
+    "GET /api/audit"
+  ]
+}
