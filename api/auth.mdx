@@ -1,0 +1,280 @@
+---
+title: Authentication Endpoints
+description: User registration, login, and account management
+---
+
+## Register User
+
+<api-endpoint method="POST" url="/api/auth/register" />
+
+Create a new user account. The first user to register automatically receives the admin role.
+
+### Request Body
+
+<ParamField body="email" type="string" required>
+  User's email address (must be unique)
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  User's full name
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  Password (minimum 12 characters)
+</ParamField>
+
+### Response
+
+<ResponseField name="user" type="object">
+  The created user object
+  
+  <ResponseField name="id" type="string">
+    UUID of the user
+  </ResponseField>
+  
+  <ResponseField name="email" type="string">
+    User's email address
+  </ResponseField>
+  
+  <ResponseField name="name" type="string">
+    User's full name
+  </ResponseField>
+  
+  <ResponseField name="role" type="string">
+    User role: `admin` or `member`
+  </ResponseField>
+  
+  <ResponseField name="created_at" type="string">
+    ISO 8601 timestamp of account creation
+  </ResponseField>
+</ResponseField>
+
+### Status Codes
+
+- `201` - User created successfully
+- `400` - Missing required fields or password too short
+- `400` - User with email already exists
+
+### Example
+
+```bash
+curl -X POST http://localhost:3333/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "alice@example.com",
+    "name": "Alice Smith",
+    "password": "secure-password-123456"
+  }'
+```
+
+<Note>
+  The first user to register automatically becomes an admin. All subsequent users are assigned the member role.
+</Note>
+
+---
+
+## Login
+
+<api-endpoint method="POST" url="/api/auth/login" />
+
+Authenticate a user and receive a JWT token.
+
+### Request Body
+
+<ParamField body="email" type="string" required>
+  User's email address
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  User's password
+</ParamField>
+
+### Response
+
+<ResponseField name="user" type="object">
+  The authenticated user object
+  
+  <ResponseField name="id" type="string">
+    UUID of the user
+  </ResponseField>
+  
+  <ResponseField name="email" type="string">
+    User's email address
+  </ResponseField>
+  
+  <ResponseField name="name" type="string">
+    User's full name
+  </ResponseField>
+  
+  <ResponseField name="role" type="string">
+    User role: `admin` or `member`
+  </ResponseField>
+  
+  <ResponseField name="created_at" type="string">
+    ISO 8601 timestamp of account creation
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="token" type="string">
+  JWT authentication token (expires in 8 hours)
+</ResponseField>
+
+### Status Codes
+
+- `200` - Login successful
+- `400` - Missing required fields
+- `401` - Invalid credentials
+
+### Example
+
+```bash
+curl -X POST http://localhost:3333/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "alice@example.com",
+    "password": "secure-password-123456"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "alice@example.com",
+    "name": "Alice Smith",
+    "role": "member",
+    "created_at": "2026-03-06T14:30:00.000Z"
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NTBlODQw..."
+}
+```
+
+---
+
+## Get Current User
+
+<api-endpoint method="GET" url="/api/auth/me" auth />
+
+Retrieve the currently authenticated user's profile.
+
+### Headers
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token: `Bearer <your-jwt-token>`
+</ParamField>
+
+### Response
+
+<ResponseField name="user" type="object">
+  The current user object
+  
+  <ResponseField name="id" type="string">
+    UUID of the user
+  </ResponseField>
+  
+  <ResponseField name="email" type="string">
+    User's email address
+  </ResponseField>
+  
+  <ResponseField name="name" type="string">
+    User's full name
+  </ResponseField>
+  
+  <ResponseField name="role" type="string">
+    User role: `admin` or `member`
+  </ResponseField>
+  
+  <ResponseField name="created_at" type="string">
+    ISO 8601 timestamp of account creation
+  </ResponseField>
+</ResponseField>
+
+### Status Codes
+
+- `200` - Success
+- `401` - Missing or invalid token
+
+### Example
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:3333/api/auth/me
+```
+
+---
+
+## List Users
+
+<api-endpoint method="GET" url="/api/auth/users" auth admin />
+
+Retrieve a list of all users. Admin only.
+
+### Headers
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token: `Bearer <your-jwt-token>`
+</ParamField>
+
+### Response
+
+<ResponseField name="users" type="array">
+  Array of user objects
+  
+  <ResponseField name="id" type="string">
+    UUID of the user
+  </ResponseField>
+  
+  <ResponseField name="email" type="string">
+    User's email address
+  </ResponseField>
+  
+  <ResponseField name="name" type="string">
+    User's full name
+  </ResponseField>
+  
+  <ResponseField name="role" type="string">
+    User role: `admin` or `member`
+  </ResponseField>
+  
+  <ResponseField name="created_at" type="string">
+    ISO 8601 timestamp of account creation
+  </ResponseField>
+</ResponseField>
+
+### Status Codes
+
+- `200` - Success
+- `401` - Missing or invalid token
+- `403` - Not an admin user
+
+### Example
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:3333/api/auth/users
+```
+
+**Response:**
+
+```json
+{
+  "users": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "email": "alice@example.com",
+      "name": "Alice Smith",
+      "role": "admin",
+      "created_at": "2026-03-06T14:30:00.000Z"
+    },
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440001",
+      "email": "bob@example.com",
+      "name": "Bob Jones",
+      "role": "member",
+      "created_at": "2026-03-06T15:00:00.000Z"
+    }
+  ]
+}
+```

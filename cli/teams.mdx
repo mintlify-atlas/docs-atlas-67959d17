@@ -1,0 +1,223 @@
+---
+title: "Team Management"
+description: "Create teams, add members, and manage team access"
+---
+
+## Overview
+
+Teams allow you to organize users and share secrets with groups efficiently. Instead of sharing secrets with individual users, you can share with an entire team.
+
+## Creating Teams
+
+### team create
+
+Create a new team.
+
+```bash
+imitsu team create <name>
+```
+
+<ParamField path="name" type="string" required>
+  The unique team name (e.g., engineering, devops, qa)
+</ParamField>
+
+**Example:**
+```bash
+imitsu team create engineering
+```
+
+**Output:**
+```
+Team created: engineering
+```
+
+**Best practices for team names:**
+- Use lowercase, descriptive names
+- Match your organizational structure (engineering, devops, qa, etc.)
+- Keep names short but meaningful
+
+---
+
+## Listing Teams
+
+### team list (team ls)
+
+List all teams you're a member of.
+
+```bash
+imitsu team list
+imitsu team ls
+```
+
+**Example:**
+```bash
+imitsu team ls
+```
+
+**Output:**
+```
+TEAM                     MEMBERS   CREATED
+───────────────────────────────────────────────────────
+engineering              5         2026-03-01T10:00:00Z
+devops                   3         2026-03-02T14:30:00Z
+qa                       2         2026-03-05T09:15:00Z
+```
+
+**Output (no teams):**
+```
+No teams. Create one: vault team create <name>
+```
+
+---
+
+## Adding Team Members
+
+### team add
+
+Add a user to a team.
+
+```bash
+imitsu team add <team> <email>
+```
+
+<ParamField path="team" type="string" required>
+  The name of the team
+</ParamField>
+
+<ParamField path="email" type="string" required>
+  The email address of the user to add
+</ParamField>
+
+<ParamField path="-r, --role" type="string" default="member">
+  Team role: `member` or `admin`
+</ParamField>
+
+**Team roles:**
+- `member` - Can access team-shared secrets (default)
+- `admin` - Can add/remove team members and manage team secrets
+
+**Example (add as member):**
+```bash
+imitsu team add engineering bob@example.com
+```
+
+**Output:**
+```
+User added to team successfully
+```
+
+**Example (add as admin):**
+```bash
+imitsu team add engineering alice@example.com -r admin
+```
+
+**Output:**
+```
+User added to team successfully
+```
+
+**Example (using long flag):**
+```bash
+imitsu team add devops charlie@example.com --role admin
+```
+
+**Errors:**
+
+Team not found:
+```
+Team not found: unknown-team
+```
+
+User not found:
+```
+User not found: unknown@example.com
+```
+
+---
+
+## Viewing Team Members
+
+### team members
+
+List all members of a team.
+
+```bash
+imitsu team members <team>
+```
+
+<ParamField path="team" type="string" required>
+  The name of the team
+</ParamField>
+
+**Example:**
+```bash
+imitsu team members engineering
+```
+
+**Output:**
+```
+Team: engineering
+
+EMAIL                         NAME                ROLE      JOINED
+───────────────────────────────────────────────────────────────────────────
+alice@example.com             Alice Smith         admin     2026-03-01T10:00:00Z
+bob@example.com               Bob Johnson         member    2026-03-02T11:30:00Z
+charlie@example.com           Charlie Davis       member    2026-03-05T14:15:00Z
+```
+
+**Error (team not found):**
+```
+Team not found: unknown-team
+```
+
+---
+
+## Sharing Secrets with Teams
+
+Once a team is created and has members, you can share secrets with the entire team:
+
+```bash
+imitsu share-team DATABASE_URL engineering
+```
+
+See the [Sharing Secrets](/cli/sharing) page for details on team-level sharing.
+
+---
+
+## Team Workflow Example
+
+Here's a typical workflow for setting up a team:
+
+```bash
+# 1. Create a team
+imitsu team create engineering
+
+# 2. Add team members
+imitsu team add engineering alice@example.com -r admin
+imitsu team add engineering bob@example.com
+imitsu team add engineering charlie@example.com
+
+# 3. Verify members
+imitsu team members engineering
+
+# 4. Share secrets with the team
+imitsu share-team DATABASE_URL engineering
+imitsu share-team API_KEY engineering -p write
+
+# 5. Import secrets and share with team
+imitsu import .env.production -t engineering
+```
+
+---
+
+## Best Practices
+
+1. **Match organizational structure**: Create teams that mirror your company's departments or project groups
+
+2. **Use admin role carefully**: Only grant admin role to users who need to manage team membership
+
+3. **Start with members**: Add users as members first, then promote to admin if needed
+
+4. **Review membership regularly**: Periodically check team members to ensure access is still appropriate
+
+5. **Combine with secret categories**: Use team sharing alongside secret categories for better organization

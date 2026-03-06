@@ -1,0 +1,189 @@
+---
+title: Audit Endpoints
+description: Retrieve audit logs for security and compliance
+---
+
+## Get Audit Logs
+
+<api-endpoint method="GET" url="/api/audit" auth admin />
+
+Retrieve audit logs of all user actions. Admin only.
+
+Audit logs track important events including:
+- User registration and login
+- Secret creation, reading, updates, and deletion
+- Secret sharing with users and teams
+- Secret import and export operations
+- Team creation and member management
+
+### Headers
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token: `Bearer <your-jwt-token>`
+</ParamField>
+
+### Query Parameters
+
+<ParamField query="limit" type="integer" default="50">
+  Maximum number of logs to return (max: 200)
+</ParamField>
+
+<ParamField query="offset" type="integer" default="0">
+  Number of logs to skip (for pagination)
+</ParamField>
+
+<ParamField query="user_id" type="string">
+  Filter logs by user ID
+</ParamField>
+
+<ParamField query="resource_type" type="string">
+  Filter logs by resource type (e.g., `secret`, `user`, `team`)
+</ParamField>
+
+### Response
+
+<ResponseField name="logs" type="array">
+  Array of audit log entries (newest first)
+  
+  <ResponseField name="id" type="string">
+    UUID of the audit log entry
+  </ResponseField>
+  
+  <ResponseField name="user_id" type="string | null">
+    UUID of the user who performed the action
+  </ResponseField>
+  
+  <ResponseField name="action" type="string">
+    Action type (e.g., `secret.create`, `user.login`, `team.add_member`)
+  </ResponseField>
+  
+  <ResponseField name="resource_type" type="string">
+    Type of resource affected (e.g., `secret`, `user`, `team`)
+  </ResponseField>
+  
+  <ResponseField name="resource_id" type="string | null">
+    UUID of the affected resource
+  </ResponseField>
+  
+  <ResponseField name="details" type="string | null">
+    Additional details about the action
+  </ResponseField>
+  
+  <ResponseField name="ip_address" type="string | null">
+    IP address of the client that made the request
+  </ResponseField>
+  
+  <ResponseField name="created_at" type="string">
+    ISO 8601 timestamp when the action occurred
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="limit" type="number">
+  The limit value used for this query
+</ResponseField>
+
+<ResponseField name="offset" type="number">
+  The offset value used for this query
+</ResponseField>
+
+### Status Codes
+
+- `200` - Success
+- `401` - Missing or invalid token
+- `403` - Not an admin user
+
+### Example: Get Recent Logs
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:3333/api/audit?limit=10
+```
+
+**Response:**
+
+```json
+{
+  "logs": [
+    {
+      "id": "880e8400-e29b-41d4-a716-446655440003",
+      "user_id": "550e8400-e29b-41d4-a716-446655440000",
+      "action": "secret.create",
+      "resource_type": "secret",
+      "resource_id": "990e8400-e29b-41d4-a716-446655440004",
+      "details": "Created secret: API_KEY",
+      "ip_address": "192.168.1.100",
+      "created_at": "2026-03-06T16:30:00.000Z"
+    },
+    {
+      "id": "881e8400-e29b-41d4-a716-446655440005",
+      "user_id": "550e8400-e29b-41d4-a716-446655440000",
+      "action": "user.login",
+      "resource_type": "user",
+      "resource_id": "550e8400-e29b-41d4-a716-446655440000",
+      "details": null,
+      "ip_address": "192.168.1.100",
+      "created_at": "2026-03-06T16:00:00.000Z"
+    }
+  ],
+  "limit": 10,
+  "offset": 0
+}
+```
+
+### Example: Filter by User
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:3333/api/audit?user_id=550e8400-e29b-41d4-a716-446655440000&limit=20"
+```
+
+### Example: Filter by Resource Type
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:3333/api/audit?resource_type=secret&limit=50"
+```
+
+### Example: Pagination
+
+```bash
+# First page
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:3333/api/audit?limit=50&offset=0"
+
+# Second page
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:3333/api/audit?limit=50&offset=50"
+```
+
+## Common Action Types
+
+Here are the most common action types you'll see in audit logs:
+
+### User Actions
+
+- `user.register` - New user account created
+- `user.login` - User logged in
+
+### Secret Actions
+
+- `secret.create` - New secret created
+- `secret.read` - Secret value retrieved
+- `secret.update` - Secret modified
+- `secret.delete` - Secret permanently deleted
+- `secret.share` - Secret shared with another user
+- `secret.share_team` - Secret shared with a team
+- `secret.import` - Bulk import operation
+- `secret.export` - Bulk export operation
+- `secret.versions` - Version history accessed
+- `secret.deduplicate` - Duplicate secrets removed
+
+### Team Actions
+
+- `team.create` - New team created
+- `team.add_member` - User added to team
+- `team.remove_member` - User removed from team
+
+<Info>
+  Audit logs are retained indefinitely and can be used for security monitoring, compliance reporting, and troubleshooting.
+</Info>

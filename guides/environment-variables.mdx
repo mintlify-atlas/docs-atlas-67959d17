@@ -1,0 +1,138 @@
+---
+title: Environment Variables
+description: Configuration options for imitsu server
+---
+
+The imitsu server is configured using environment variables prefixed with `IMITSU_`.
+
+## Configuration Variables
+
+### IMITSU_PORT
+
+- **Default**: `3100`
+- **Required**: No
+- **Description**: The port on which the imitsu server will listen
+
+```bash
+IMITSU_PORT=8080 npm start
+```
+
+The server will be accessible at `http://localhost:8080`.
+
+### IMITSU_MASTER_KEY
+
+- **Default**: None
+- **Required**: Yes (production)
+- **Description**: The master encryption key used to derive per-secret encryption keys via HKDF-SHA512
+
+<Warning>
+  This is a critical security parameter. Use a strong, randomly generated value in production. All secrets are encrypted using keys derived from this master key.
+</Warning>
+
+```bash
+IMITSU_MASTER_KEY="your-secret-master-key" npm start
+```
+
+**Generating a secure master key**:
+
+```bash
+# Using openssl (recommended)
+openssl rand -base64 32
+
+# Using Node.js
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+### IMITSU_JWT_SECRET
+
+- **Default**: `"change-me-in-production"`
+- **Required**: Yes (production)
+- **Description**: Secret key used to sign JWT authentication tokens
+
+<Warning>
+  Using the default value in production is a critical security vulnerability. Always set a strong random value.
+</Warning>
+
+```bash
+IMITSU_JWT_SECRET="your-jwt-secret" npm start
+```
+
+**Generating a secure JWT secret**:
+
+```bash
+# Using openssl
+openssl rand -hex 32
+
+# Using Node.js
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+### IMITSU_DB_PATH
+
+- **Default**: `./imitsu.db`
+- **Required**: No
+- **Description**: Path to the SQLite database file
+
+```bash
+IMITSU_DB_PATH="/var/lib/imitsu/data.db" npm start
+```
+
+Ensure the directory exists and the process has write permissions.
+
+## Complete Example
+
+Here's a complete example of starting the imitsu server with all configuration:
+
+```bash
+IMITSU_PORT=3100 \
+IMITSU_MASTER_KEY="$(openssl rand -base64 32)" \
+IMITSU_JWT_SECRET="$(openssl rand -hex 32)" \
+IMITSU_DB_PATH="/var/lib/imitsu/imitsu.db" \
+npm start
+```
+
+## Using .env Files
+
+For development, you can use a `.env` file in the server directory:
+
+```bash
+# .env
+IMITSU_PORT=3100
+IMITSU_MASTER_KEY=your-master-key-here
+IMITSU_JWT_SECRET=your-jwt-secret-here
+IMITSU_DB_PATH=./imitsu.db
+```
+
+<Warning>
+  Never commit `.env` files containing production secrets to version control. Add `.env` to your `.gitignore` file.
+</Warning>
+
+## Docker Example
+
+When running imitsu in Docker, pass environment variables using the `-e` flag:
+
+```bash
+docker run -d \
+  -p 3100:3100 \
+  -e IMITSU_PORT=3100 \
+  -e IMITSU_MASTER_KEY="your-master-key" \
+  -e IMITSU_JWT_SECRET="your-jwt-secret" \
+  -e IMITSU_DB_PATH="/data/imitsu.db" \
+  -v /host/path:/data \
+  imitsu:latest
+```
+
+## Production Checklist
+
+Before deploying to production:
+
+- [ ] Set a strong random `IMITSU_MASTER_KEY` (minimum 32 bytes)
+- [ ] Set a strong random `IMITSU_JWT_SECRET` (minimum 32 bytes)
+- [ ] Store secrets in a secure secret management system (not plain text files)
+- [ ] Configure `IMITSU_DB_PATH` to a backed-up location
+- [ ] Ensure database directory has appropriate permissions
+- [ ] Document your configuration for disaster recovery
+
+<Warning>
+  Changing `IMITSU_MASTER_KEY` after secrets have been stored will make all existing secrets unrecoverable. Treat this value as immutable once in use.
+</Warning>

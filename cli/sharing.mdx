@@ -1,0 +1,171 @@
+---
+title: "Sharing Secrets"
+description: "Share secrets with individual users or entire teams"
+---
+
+## Overview
+
+imitsu supports two types of secret sharing:
+- **User-level sharing**: Share with specific teammates by email
+- **Team-level sharing**: Share with all members of a team
+
+## User-Level Sharing
+
+### share
+
+Share a secret with a specific teammate by their email address.
+
+```bash
+imitsu share <name> -u <email>
+```
+
+<ParamField path="name" type="string" required>
+  The name of the secret to share
+</ParamField>
+
+<ParamField path="-u, --user" type="string" required>
+  The teammate's email address
+</ParamField>
+
+<ParamField path="-p, --permission" type="string" default="read">
+  Permission level: `read`, `write`, or `admin`
+</ParamField>
+
+**Permission levels:**
+- `read` - Can view the secret value
+- `write` - Can view and update the secret
+- `admin` - Can view, update, delete, and share the secret
+
+**Example (read-only access):**
+```bash
+imitsu share DATABASE_URL -u bob@example.com
+```
+
+**Output:**
+```
+Shared "DATABASE_URL" with bob@example.com (read)
+```
+
+**Example (write access):**
+```bash
+imitsu share API_KEY -u bob@example.com -p write
+```
+
+**Output:**
+```
+Shared "API_KEY" with bob@example.com (write)
+```
+
+**Example (admin access):**
+```bash
+imitsu share MASTER_TOKEN -u alice@example.com --permission admin
+```
+
+**Output:**
+```
+Shared "MASTER_TOKEN" with alice@example.com (admin)
+```
+
+**Errors:**
+
+Secret not found:
+```
+Secret not found: MISSING_KEY
+```
+
+User not found:
+```
+User not found: unknown@example.com
+```
+
+---
+
+## Team-Level Sharing
+
+### share-team
+
+Share a secret with all members of a team.
+
+```bash
+imitsu share-team <secretName> <teamName>
+```
+
+<ParamField path="secretName" type="string" required>
+  The name of the secret to share
+</ParamField>
+
+<ParamField path="teamName" type="string" required>
+  The name of the team
+</ParamField>
+
+<ParamField path="-p, --permission" type="string" default="read">
+  Permission level: `read`, `write`, or `admin`
+</ParamField>
+
+**Example (read-only access):**
+```bash
+imitsu share-team DATABASE_URL engineering
+```
+
+**Output:**
+```
+Secret shared with team successfully
+```
+
+**Example (write access):**
+```bash
+imitsu share-team API_KEY engineering -p write
+```
+
+**Example (admin access):**
+```bash
+imitsu share-team DEPLOY_TOKEN devops --permission admin
+```
+
+**Errors:**
+
+Secret not found:
+```
+Secret not found: MISSING_KEY
+```
+
+Team not found:
+```
+Team not found: unknown-team
+```
+
+---
+
+## Sharing During Secret Creation
+
+You can share with a team immediately when creating a secret using the `--team` flag with the `set` command:
+
+```bash
+imitsu set NEW_SECRET "value" -t engineering
+```
+
+**Output:**
+```
+Created: NEW_SECRET
+Shared with team "engineering" (read access)
+```
+
+This is equivalent to running:
+```bash
+imitsu set NEW_SECRET "value"
+imitsu share-team NEW_SECRET engineering
+```
+
+---
+
+## Best Practices
+
+1. **Use the principle of least privilege**: Start with `read` permission and upgrade only when necessary
+
+2. **Prefer team sharing for groups**: Use `share-team` instead of sharing with individual users when multiple people need access
+
+3. **Grant admin permission sparingly**: Only give `admin` permission to users who need to manage sharing and deletion
+
+4. **Review access regularly**: Use the admin commands to audit who has access to sensitive secrets
+
+5. **Organize with teams**: Create teams that match your organizational structure (engineering, devops, qa, etc.)

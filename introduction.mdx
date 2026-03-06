@@ -1,0 +1,115 @@
+---
+title: Introduction
+description: A team secret manager with AES-256-GCM encryption, role-based access control, team sharing, and audit logging
+---
+
+<img
+  className="block dark:hidden"
+  src="https://raw.githubusercontent.com/adeleke5140/imitsu/main/.github/banner-light.svg"
+  alt="imitsu Hero Light"
+  style={{
+    borderRadius: "8px",
+    marginBottom: "2rem"
+  }}
+/>
+<img
+  className="hidden dark:block"
+  src="https://raw.githubusercontent.com/adeleke5140/imitsu/main/.github/banner-dark.svg"
+  alt="imitsu Hero Dark"
+  style={{
+    borderRadius: "8px",
+    marginBottom: "2rem"
+  }}
+/>
+
+## What is imitsu?
+
+imitsu is a secure, self-hosted team secret manager designed for development teams who need to share API keys, credentials, and environment variables safely. Built with security at its core, imitsu provides enterprise-grade encryption while maintaining simplicity in deployment and usage.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Military-Grade Encryption" icon="lock">
+    AES-256-GCM encryption with per-secret salts, IVs, and keys derived via HKDF-SHA512
+  </Card>
+  <Card title="Team Collaboration" icon="users">
+    Share secrets with individuals or teams with granular read/write/admin permissions
+  </Card>
+  <Card title="Comprehensive Audit Trail" icon="clipboard-list">
+    Every read, write, share, and delete operation is logged with timestamps and user details
+  </Card>
+  <Card title="Multiple Interfaces" icon="terminal">
+    Command-line interface (CLI) and interactive terminal UI (TUI) for different workflows
+  </Card>
+  <Card title="Bulk Operations" icon="file-import">
+    Import and export secrets from .env files with automatic category detection
+  </Card>
+  <Card title="Simple Deployment" icon="server">
+    Single SQLite database, no complex infrastructure required
+  </Card>
+</CardGroup>
+
+## Security First
+
+imitsu is built with security as the top priority:
+
+- **Encryption**: AES-256-GCM with per-secret salts and initialization vectors
+- **Password Hashing**: Argon2id with 65MB memory cost and 3 iterations
+- **Authentication**: JWT tokens with 8-hour expiry
+- **Access Control**: Role-based permissions (admin/member) and per-secret sharing
+- **Rate Limiting**: 100 requests per minute per IP address
+- **Audit Logging**: Complete audit trail of all operations
+
+<Note>
+  imitsu stores all secrets encrypted at rest. The master encryption key never leaves your server, and secrets are only decrypted when explicitly requested by authorized users.
+</Note>
+
+## Use Cases
+
+<AccordionGroup>
+  <Accordion title="Development Teams">
+    Share database credentials, API keys, and service tokens across your team without using unencrypted .env files in Slack or email.
+  </Accordion>
+  <Accordion title="CI/CD Pipelines">
+    Fetch secrets programmatically using the CLI or API for automated deployments and testing environments.
+  </Accordion>
+  <Accordion title="Onboarding New Developers">
+    New team members get instant access to all team secrets once added, no manual credential sharing required.
+  </Accordion>
+  <Accordion title="Environment Management">
+    Maintain separate secret categories for development, staging, and production with fine-grained access control.
+  </Accordion>
+</AccordionGroup>
+
+## Architecture
+
+imitsu consists of three main components:
+
+1. **API Server** (Express + TypeScript) - RESTful API with JWT authentication
+2. **CLI Client** (Node.js + Commander) - Command-line interface for secret management
+3. **TUI Client** (Go + Bubble Tea) - Interactive terminal UI for visual workflows
+
+All components share the same configuration and can be used interchangeably based on your workflow preferences.
+
+## Get Started
+
+Ready to secure your team's secrets? Follow our quickstart guide to get imitsu running in minutes.
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install the CLI and TUI clients
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Set up your first secret vault
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/cli/authentication">
+    Complete command reference
+  </Card>
+  <Card title="Self-Hosting" icon="server" href="/deployment/server-setup">
+    Deploy your own imitsu server
+  </Card>
+</CardGroup>
+
+## Open Source
+
+imitsu is open source and available on [GitHub](https://github.com/adeleke5140/imitsu). Contributions are welcome!

@@ -1,0 +1,130 @@
+---
+title: API Overview
+description: Introduction to the imitsu REST API
+---
+
+The imitsu API is a RESTful API that allows you to manage secrets, users, teams, and audit logs programmatically.
+
+## Base URL
+
+All API requests should be made to:
+
+```
+http://localhost:3333/api
+```
+
+Replace `localhost:3333` with your actual server URL in production.
+
+## Rate Limiting
+
+The API implements rate limiting to ensure fair usage:
+
+- **Rate limit**: 100 requests per minute per IP address
+- Rate limit headers are included in responses:
+  - `X-RateLimit-Limit`: Maximum requests allowed
+  - `X-RateLimit-Remaining`: Requests remaining
+  - `X-RateLimit-Reset`: Time when the limit resets
+
+## Response Format
+
+All API responses are returned in JSON format.
+
+### Success Response
+
+```json
+{
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com",
+    "name": "John Doe",
+    "role": "member"
+  }
+}
+```
+
+### Error Response
+
+```json
+{
+  "error": "Error message describing what went wrong"
+}
+```
+
+## Status Codes
+
+The API uses standard HTTP status codes:
+
+| Status Code | Description |
+|------------|-------------|
+| `200` | OK - Request succeeded |
+| `201` | Created - Resource successfully created |
+| `400` | Bad Request - Invalid parameters or missing required fields |
+| `401` | Unauthorized - Missing or invalid authentication token |
+| `403` | Forbidden - Insufficient permissions |
+| `404` | Not Found - Resource does not exist |
+| `500` | Internal Server Error - Something went wrong on the server |
+
+## Common Error Codes
+
+### 400 Bad Request
+
+Returned when required parameters are missing or invalid:
+
+```json
+{
+  "error": "email, name, and password are required"
+}
+```
+
+### 401 Unauthorized
+
+Returned when authentication fails:
+
+```json
+{
+  "error": "Missing or invalid authorization header"
+}
+```
+
+### 403 Forbidden
+
+Returned when the user lacks permissions:
+
+```json
+{
+  "error": "Access denied"
+}
+```
+
+### 404 Not Found
+
+Returned when a resource doesn't exist:
+
+```json
+{
+  "error": "Secret not found"
+}
+```
+
+## Pagination
+
+Endpoints that return lists support pagination using query parameters:
+
+<ParamField query="limit" type="integer" default="50">
+  Maximum number of items to return (max: 200)
+</ParamField>
+
+<ParamField query="offset" type="integer" default="0">
+  Number of items to skip
+</ParamField>
+
+Example:
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:3333/api/audit?limit=20&offset=40"
+```
+
+## Request IDs
+
+All API requests are logged with the client's IP address for audit purposes. Sensitive operations are tracked in the audit log.

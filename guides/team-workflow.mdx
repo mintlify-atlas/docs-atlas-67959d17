@@ -1,0 +1,143 @@
+---
+title: Team Workflow
+description: Complete team onboarding workflow for imitsu
+---
+
+This guide walks through a typical team workflow for setting up and using imitsu in a collaborative environment.
+
+## Overview
+
+The team workflow enables an administrator to set up shared secrets and onboard new team members who can immediately access those secrets without manual sharing.
+
+## Complete Workflow
+
+<Steps>
+  <Step title="Administrator Setup">
+    The first user to register automatically becomes an admin. Start by creating an admin account:
+
+    ```bash
+    imitsu register -e admin@company.com -n "Admin"
+    imitsu login admin@company.com
+    ```
+
+    Then create a team for your organization:
+
+    ```bash
+    imitsu team create backend
+    ```
+  </Step>
+
+  <Step title="Import and Share Secrets">
+    Import your existing environment variables and automatically share them with the team:
+
+    ```bash
+    imitsu import .env.production -t backend -c production
+    ```
+
+    This imports all secrets from `.env.production`, tags them with the `production` category, and shares them with the `backend` team.
+
+    You can also create individual secrets and share with a team:
+
+    ```bash
+    imitsu set DATABASE_URL -t backend
+    imitsu set API_KEY -t backend -c production
+    ```
+  </Step>
+
+  <Step title="New Developer Registration">
+    When a new developer joins, they first register their account:
+
+    ```bash
+    imitsu register -e dev@company.com -n "New Dev"
+    ```
+  </Step>
+
+  <Step title="Admin Adds Developer to Team">
+    The administrator adds the new developer to the team:
+
+    ```bash
+    imitsu team add backend dev@company.com
+    ```
+
+    To verify team membership:
+
+    ```bash
+    imitsu team members backend
+    ```
+  </Step>
+
+  <Step title="Developer Access">
+    The new developer can now log in and immediately access all team secrets:
+
+    ```bash
+    imitsu login dev@company.com
+    imitsu ls
+    ```
+
+    Export secrets to a local environment file:
+
+    ```bash
+    imitsu export .env.local
+    ```
+
+    Or retrieve specific secrets:
+
+    ```bash
+    imitsu get DATABASE_URL
+    imitsu get API_KEY
+    ```
+  </Step>
+</Steps>
+
+## Managing Multiple Teams
+
+For larger organizations, you can create multiple teams with different access levels:
+
+```bash
+# Create teams
+imitsu team create backend
+imitsu team create frontend
+imitsu team create devops
+
+# Share secrets with specific teams
+imitsu set DATABASE_URL -t backend
+imitsu set API_GATEWAY_URL -t frontend
+imitsu set AWS_ACCESS_KEY -t devops
+
+# Add members to appropriate teams
+imitsu team add backend dev1@company.com
+imitsu team add frontend dev2@company.com
+imitsu team add devops dev3@company.com
+```
+
+## Permission Levels
+
+When sharing secrets, you can specify different permission levels:
+
+```bash
+# Read-only access (default)
+imitsu share SECRET_NAME -u dev@company.com
+
+# Write access (can update)
+imitsu share SECRET_NAME -u dev@company.com -p write
+
+# Admin access (can update and share)
+imitsu share SECRET_NAME -u dev@company.com -p admin
+```
+
+Team sharing:
+
+```bash
+# Share with read access
+imitsu share-team SECRET_NAME backend
+
+# Share with write access
+imitsu share-team SECRET_NAME backend -p write
+```
+
+## Best Practices
+
+- **Use categories**: Tag secrets by environment (`production`, `staging`, `development`) or purpose (`database`, `api`, `auth`)
+- **Team-based access**: Prefer team sharing over individual user sharing for easier management
+- **Regular audits**: Use `imitsu audit` to review who accessed what secrets
+- **Export filters**: Use category filters when exporting: `imitsu export -c production`

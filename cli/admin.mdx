@@ -1,0 +1,242 @@
+---
+title: "Admin Commands"
+description: "User management and audit logging for administrators"
+---
+
+## Overview
+
+Admin commands are only accessible to users with the `admin` role. The first user to register on a vault instance automatically becomes an admin.
+
+These commands provide:
+- User management and visibility
+- Audit logging for compliance and security
+
+---
+
+## User Management
+
+### users
+
+List all registered users in the vault.
+
+```bash
+imitsu users
+```
+
+**Access:** Admin only
+
+**Example:**
+```bash
+imitsu users
+```
+
+**Output:**
+```
+EMAIL                         NAME                ROLE      JOINED
+───────────────────────────────────────────────────────────────────────────
+alice@example.com             Alice Smith         admin     2026-03-01T10:00:00Z
+bob@example.com               Bob Johnson         user      2026-03-02T11:30:00Z
+charlie@example.com           Charlie Davis       user      2026-03-05T14:15:00Z
+diana@example.com             Diana Rodriguez     user      2026-03-06T09:00:00Z
+```
+
+**Use cases:**
+- Review all users with vault access
+- Identify user roles and permissions
+- Track when users joined
+- Audit user accounts
+
+**Error (non-admin user):**
+```
+Unauthorized: Admin access required
+```
+
+---
+
+## Audit Logging
+
+### audit
+
+View audit logs of all vault activities.
+
+```bash
+imitsu audit
+```
+
+**Access:** Admin only
+
+<ParamField path="-l, --limit" type="number" default="20">
+  Number of log entries to display
+</ParamField>
+
+**Example (default limit):**
+```bash
+imitsu audit
+```
+
+**Output:**
+```
+TIME                  ACTION              DETAILS
+───────────────────────────────────────────────────────────────────────────
+2026-03-06T10:30:00Z  secret:create       name=DATABASE_URL
+2026-03-06T10:31:15Z  secret:update       id=abc-123
+2026-03-06T10:32:00Z  secret:share        secret=API_KEY user=bob@example.com
+2026-03-06T10:35:00Z  team:create         name=engineering
+2026-03-06T10:36:00Z  team:add_member     team=engineering user=alice@example.com
+2026-03-06T10:40:00Z  secret:share_team   secret=DATABASE_URL team=engineering
+2026-03-06T11:00:00Z  secret:read         name=API_KEY
+2026-03-06T11:15:00Z  secret:delete       name=OLD_KEY
+```
+
+**Example (more entries):**
+```bash
+imitsu audit -l 100
+```
+
+**Example (using long flag):**
+```bash
+imitsu audit --limit 50
+```
+
+**Output (no logs):**
+```
+No audit logs
+```
+
+**Error (non-admin user):**
+```
+Unauthorized: Admin access required
+```
+
+---
+
+## Audited Actions
+
+The audit log tracks the following actions:
+
+**Secret operations:**
+- `secret:create` - New secret created
+- `secret:read` - Secret value retrieved
+- `secret:update` - Secret value modified
+- `secret:delete` - Secret deleted
+- `secret:share` - Secret shared with user
+- `secret:share_team` - Secret shared with team
+
+**Team operations:**
+- `team:create` - New team created
+- `team:add_member` - User added to team
+- `team:remove_member` - User removed from team
+
+**User operations:**
+- `user:register` - New user registered
+- `user:login` - User logged in
+- `user:logout` - User logged out
+
+**Import/export operations:**
+- `secrets:import` - Bulk import performed
+- `secrets:export` - Bulk export performed
+
+---
+
+## Admin Use Cases
+
+### Security audit
+
+Review recent access to sensitive secrets:
+
+```bash
+imitsu audit -l 100 | grep "secret:read"
+```
+
+### Compliance reporting
+
+Export audit logs for compliance documentation:
+
+```bash
+imitsu audit -l 1000 > audit-$(date +%Y%m).log
+```
+
+### User access review
+
+Identify all users and their roles:
+
+```bash
+imitsu users
+```
+
+### Incident investigation
+
+Track who accessed or modified a secret:
+
+```bash
+imitsu audit -l 500 | grep "DATABASE_URL"
+```
+
+### Team membership audit
+
+Combine with team commands to review access:
+
+```bash
+imitsu users
+imitsu team ls
+imitsu team members engineering
+```
+
+---
+
+## Admin Best Practices
+
+1. **Regular audits**: Review audit logs weekly for unusual activity
+
+2. **Principle of least privilege**: Only grant admin role when necessary
+
+3. **User lifecycle management**: 
+   - Review user list monthly
+   - Remove access for departed team members
+   - Verify team memberships are current
+
+4. **Compliance documentation**:
+   - Export audit logs regularly
+   - Keep records of who accessed secrets
+   - Document access patterns
+
+5. **Security monitoring**:
+   - Watch for unexpected secret deletions
+   - Monitor sharing patterns
+   - Track failed authentication attempts
+
+6. **Access reviews**:
+   - Periodically review team memberships
+   - Verify secret sharing permissions
+   - Audit who has admin access
+
+---
+
+## Admin Role Assignment
+
+**First user:**
+The first user to register automatically receives the admin role:
+
+```bash
+imitsu register -e admin@example.com -n "Admin User"
+```
+
+**Output:**
+```
+Registered! Role: admin
+You are the first user — you've been made admin.
+```
+
+**Subsequent users:**
+All other users register as standard users:
+
+```bash
+imitsu register -e user@example.com -n "Standard User"
+```
+
+**Output:**
+```
+Registered! Role: user
+```
+
+**Note:** Currently, admin role assignment beyond the first user must be done directly in the database or through the vault's admin interface.

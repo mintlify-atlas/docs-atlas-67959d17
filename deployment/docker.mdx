@@ -1,0 +1,380 @@
+---
+title: 'Docker Deployment'
+description: 'Run imitsu in Docker with proper volume mounting and configuration'
+---
+
+## Dockerfile Overview
+
+imitsu uses a multi-stage Docker build for optimized production images:
+
+### Build Stage
+
+```dockerfile
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY tsconfig.json ./
+COPY src/server ./src/server
+
+RUN npx tsc --project tsconfig.json
+```
+
+- Uses Node.js 22 Alpine for minimal size
+- Installs all dependencies (including dev dependencies)
+- Compiles TypeScript to JavaScript
+
+### Production Stage
+
+```dockerfile
+FROM node:22-alpine
+
+RUN apk add --no-cache dumb-init
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+COPY --from=builder /app/dist/server ./dist/server
+
+ENV NODE_ENV=production
+ENV IMITSU_PORT=3100
+ENV IMITSU_DB_PATH=/data/imitsu.db
+
+RUN mkdir -p /data && chown node:node /data
+
+EXPOSE 3100
+
+VOLUME /data
+
+USER node
+
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/server/index.js"]
+```
+
+**Key features:**
+- `dumb-init` for proper signal handling (SIGTERM, SIGINT)
+- Production-only dependencies (`--omit=dev`)
+- Non-root user (`node`) for security
+- Volume mount at `/data` for database persistence
+- Exposes port 3100
+
+---
+
+## Building the Image
+
+```bash
+docker build -t imitsu:latest .
+```
+
+**Tag for a registry:**
+```bash
+docker build -t your-registry.com/imitsu:v0.0.6 .
+```
+
+---
+
+## Running with docker run
+
+### Basic Usage
+
+```bash
+docker run -d \
+  --name imitsu \
+  -p 3100:3100 \
+  -v imitsu-data:/data \
+  -e IMITSU_JWT_SECRET="your-jwt-secret" \
+  -e IMITSU_MASTER_KEY="your-master-key" \
+  imitsu:latest
+```
+
+### With Environment File
+
+Create a `.env.docker` file:
+
+```bash
+IMITSU_PORT=3100
+IMITSU_JWT_SECRET=your-random-jwt-secret-here
+IMITSU_MASTER_KEY=your-random-256-bit-master-key-here
+IMITSU_DB_PATH=/data/imitsu.db
+```
+
+Run with the environment file:
+
+```bash
+docker run -d \
+  --name imitsu \
+  -p 3100:3100 \
+  -v imitsu-data:/data \
+  --env-file .env.docker \
+  imitsu:latest
+```
+
+<Warning>
+  Never commit `.env.docker` to version control. Add it to `.gitignore`.
+</Warning>
+
+### Custom Port Binding
+
+```bash
+docker run -d \
+  --name imitsu \
+  -p 8080:3100 \
+  -v imitsu-data:/data \
+  --env-file .env.docker \
+  imitsu:latest
+```
+
+This maps host port 8080 to container port 3100.
+
+---
+
+## Docker Compose
+
+Create a `docker-compose.yml` file:
+
+```yaml
+version: '3.8'
+
+services:
+  imitsu:
+    build: .
+    # Or use a pre-built image:
+    # image: imitsu:latest
+    container_name: imitsu
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - imitsu-data:/data
+    environment:
+      - NODE_ENV=production
+      - IMITSU_PORT=3100
+      - IMITSU_DB_PATH=/data/imitsu.db
+      - IMITSU_JWT_SECRET=${IMITSU_JWT_SECRET}
+      - IMITSU_MASTER_KEY=${IMITSU_MASTER_KEY}
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3100"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  imitsu-data:
+    driver: local
+```
+
+### Start with Docker Compose
+
+<Steps>
+  <Step title="Set environment variables">
+    Create a `.env` file in the same directory:
+    
+    ```bash
+    IMITSU_JWT_SECRET=<generate-with-crypto.randomBytes>
+    IMITSU_MASTER_KEY=<generate-with-crypto.randomBytes>
+    ```
+  </Step>
+
+  <Step title="Start the service">
+    ```bash
+    docker-compose up -d
+    ```
+  </Step>
+
+  <Step title="View logs">
+    ```bash
+    docker-compose logs -f imitsu
+    ```
+  </Step>
+
+  <Step title="Stop the service">
+    ```bash
+    docker-compose down
+    ```
+    
+    To remove the volume (destroys data):
+    ```bash
+    docker-compose down -v
+    ```
+  </Step>
+</Steps>
+
+---
+
+## Volume Mounting
+
+### Named Volume (Recommended)
+
+```bash
+docker run -d \
+  -v imitsu-data:/data \
+  imitsu:latest
+```
+
+Data persists in Docker's volume directory.
+
+**List volumes:**
+```bash
+docker volume ls
+```
+
+**Inspect volume:**
+```bash
+docker volume inspect imitsu-data
+```
+
+### Bind Mount
+
+Mount a host directory:
+
+```bash
+mkdir -p /opt/imitsu/data
+
+docker run -d \
+  -v /opt/imitsu/data:/data \
+  imitsu:latest
+```
+
+<Warning>
+  Ensure the host directory has correct permissions. The container runs as user `node` (UID 1000).
+</Warning>
+
+**Fix permissions:**
+```bash
+sudo chown -R 1000:1000 /opt/imitsu/data
+```
+
+---
+
+## Behind a Reverse Proxy
+
+### nginx
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name secrets.company.com;
+
+    ssl_certificate /etc/ssl/certs/secrets.company.com.crt;
+    ssl_certificate_key /etc/ssl/private/secrets.company.com.key;
+
+    location / {
+        proxy_pass http://localhost:3100;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Caddy
+
+```caddy
+secrets.company.com {
+    reverse_proxy localhost:3100
+}
+```
+
+Caddy automatically handles HTTPS with Let's Encrypt.
+
+---
+
+## Docker Compose with nginx
+
+Complete setup with automatic HTTPS:
+
+```yaml
+version: '3.8'
+
+services:
+  imitsu:
+    build: .
+    container_name: imitsu
+    restart: unless-stopped
+    expose:
+      - "3100"
+    volumes:
+      - imitsu-data:/data
+    environment:
+      - NODE_ENV=production
+      - IMITSU_PORT=3100
+      - IMITSU_DB_PATH=/data/imitsu.db
+      - IMITSU_JWT_SECRET=${IMITSU_JWT_SECRET}
+      - IMITSU_MASTER_KEY=${IMITSU_MASTER_KEY}
+    networks:
+      - imitsu-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: imitsu-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/ssl:ro
+    depends_on:
+      - imitsu
+    networks:
+      - imitsu-net
+
+volumes:
+  imitsu-data:
+
+networks:
+  imitsu-net:
+```
+
+---
+
+## Management Commands
+
+### View logs
+
+```bash
+docker logs -f imitsu
+```
+
+### Execute CLI commands
+
+```bash
+docker exec -it imitsu imitsu whoami
+docker exec -it imitsu imitsu ls
+```
+
+### Backup database
+
+```bash
+docker exec imitsu cat /data/imitsu.db > backup-$(date +%Y%m%d).db
+```
+
+### Restore database
+
+```bash
+docker cp backup-20260306.db imitsu:/data/imitsu.db
+docker restart imitsu
+```
+
+### Shell access
+
+```bash
+docker exec -it imitsu sh
+```
+
+---
+
+## Next Steps
+
+- [Configuration](/deployment/configuration) for environment variable details
+- [Production Checklist](/deployment/production-checklist) for security best practices
+- Set up automated backups
+- Configure monitoring and alerts

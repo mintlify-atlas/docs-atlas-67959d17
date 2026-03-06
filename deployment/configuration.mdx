@@ -1,0 +1,190 @@
+---
+title: 'Configuration'
+description: 'Environment variables and server configuration options'
+---
+
+## Environment Variables
+
+imitsu is configured entirely through environment variables. Create a `.env` file or set these in your deployment environment.
+
+### IMITSU_PORT
+
+**Default:** `3100`
+
+**Description:** The HTTP port the server listens on.
+
+```bash
+IMITSU_PORT=3100
+```
+
+Change this if port 3100 is already in use or if you need to run multiple instances.
+
+**Example:**
+```bash
+IMITSU_PORT=8080
+```
+
+---
+
+### IMITSU_JWT_SECRET
+
+**Default:** None (required)
+
+**Description:** Secret key used to sign and verify JWT authentication tokens. Tokens expire after 8 hours.
+
+<Warning>
+  **Required in production.** Must be a strong, random string. If this value changes, all existing user sessions will be invalidated.
+</Warning>
+
+**Generate a secure secret:**
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+**Example:**
+```bash
+IMITSU_JWT_SECRET=a3f8d9e2b4c7a1e6f9d8c4b7a2e5f8d9c3b6a9e2f5d8c1b4a7e9f2d5c8b1a4e7
+```
+
+---
+
+### IMITSU_MASTER_KEY
+
+**Default:** None (required)
+
+**Description:** Master encryption key used to derive per-secret AES-256-GCM keys via HKDF-SHA512. All secrets are encrypted with keys derived from this master key.
+
+<Warning>
+  **Required in production.** Must be a strong, random 256-bit (32-byte) value. If this key is lost or changed, all encrypted secrets become unrecoverable.
+</Warning>
+
+**Generate a secure master key:**
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+**Example:**
+```bash
+IMITSU_MASTER_KEY=b7e4f1d8c5a2e9f6d3c0a7e4f1d8c5a2e9f6d3c0a7e4f1d8c5a2e9f6d3c0a7e4
+```
+
+**Security considerations:**
+- Store this key securely (e.g., in a secret management service, encrypted file, or hardware security module)
+- Never commit this key to version control
+- Back up this key separately from the database
+- Rotate this key only if you can re-encrypt all secrets (requires custom migration)
+
+---
+
+### IMITSU_DB_PATH
+
+**Default:** `./imitsu.db`
+
+**Description:** File path to the SQLite database. The database stores encrypted secrets, user accounts, teams, permissions, and audit logs.
+
+**Example:**
+```bash
+IMITSU_DB_PATH=/var/lib/imitsu/imitsu.db
+```
+
+**Docker example:**
+```bash
+IMITSU_DB_PATH=/data/imitsu.db
+```
+
+**Important:**
+- Ensure the directory exists and the server process has write permissions
+- Back up this file regularly (see [Production Checklist](/deployment/production-checklist))
+- Store on persistent storage in containerized environments (use volumes)
+
+---
+
+## Example Configurations
+
+### Development
+
+```bash
+# .env.development
+IMITSU_PORT=3100
+IMITSU_JWT_SECRET=dev-jwt-secret-not-for-production
+IMITSU_MASTER_KEY=dev-master-key-not-for-production-use
+IMITSU_DB_PATH=./imitsu.db
+```
+
+### Production
+
+```bash
+# .env.production
+IMITSU_PORT=3100
+IMITSU_JWT_SECRET=<generate-with-crypto.randomBytes>
+IMITSU_MASTER_KEY=<generate-with-crypto.randomBytes>
+IMITSU_DB_PATH=/var/lib/imitsu/data/imitsu.db
+NODE_ENV=production
+```
+
+### Docker
+
+```bash
+# .env.docker
+IMITSU_PORT=3100
+IMITSU_JWT_SECRET=<generate-with-crypto.randomBytes>
+IMITSU_MASTER_KEY=<generate-with-crypto.randomBytes>
+IMITSU_DB_PATH=/data/imitsu.db
+NODE_ENV=production
+```
+
+## Configuration Management
+
+### Using .env files
+
+1. Copy the example file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit with your values:
+   ```bash
+   nano .env
+   ```
+
+3. Never commit `.env` to version control (already in `.gitignore`)
+
+### Using systemd EnvironmentFile
+
+In your systemd service file:
+
+```ini
+[Service]
+EnvironmentFile=/opt/imitsu/.env
+```
+
+### Using container orchestration
+
+**Docker Compose:**
+```yaml
+services:
+  imitsu:
+    environment:
+      - IMITSU_PORT=3100
+      - IMITSU_JWT_SECRET=${IMITSU_JWT_SECRET}
+      - IMITSU_MASTER_KEY=${IMITSU_MASTER_KEY}
+      - IMITSU_DB_PATH=/data/imitsu.db
+```
+
+**Kubernetes Secret:**
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: imitsu-secrets
+type: Opaque
+stringData:
+  jwt-secret: <your-jwt-secret>
+  master-key: <your-master-key>
+```
+
+## Next Steps
+
+- [Server Setup](/deployment/server-setup) for installation instructions
+- [Production Checklist](/deployment/production-checklist) for security best practices
+- [Docker Deployment](/deployment/docker) for containerized setups

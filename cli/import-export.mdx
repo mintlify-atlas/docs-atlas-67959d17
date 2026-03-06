@@ -1,0 +1,303 @@
+---
+title: "Import & Export"
+description: "Bulk import secrets from .env files and export to various formats"
+---
+
+## Overview
+
+imitsu supports bulk operations for managing secrets:
+- **Import**: Read secrets from `.env` files with automatic category detection
+- **Export**: Write secrets to `.env` format, grouped by category
+
+These commands are perfect for migrating from environment files or backing up secrets.
+
+## Importing Secrets
+
+### import
+
+Bulk import secrets from a `.env` file. Section headers automatically become categories.
+
+```bash
+imitsu import <file>
+```
+
+<ParamField path="file" type="string" required>
+  Path to the .env file to import
+</ParamField>
+
+<ParamField path="-t, --team" type="string">
+  Share all imported secrets with a team (grants read access)
+</ParamField>
+
+**File format:**
+
+imitsu automatically detects category headers in your `.env` file:
+
+```env
+### Application ###
+APP_NAME=MyApp
+APP_ENV=production
+
+# Database
+DATABASE_URL=postgresql://localhost/mydb
+DB_PASSWORD=secretpass
+
+## API Keys
+STRIPE_KEY=sk_test_123
+SENDGRID_KEY=SG.abc123
+```
+
+**Category detection:**
+- Headers starting with `#`, `##`, or `###` define categories
+- Text between hashes becomes the category name (lowercased)
+- Secrets following a header are assigned to that category
+- Secrets without a header are assigned to "general" category
+
+**Example:**
+```bash
+imitsu import .env.production
+```
+
+**Output:**
+```
+Parsed 6 entries from .env.production (3 sections: application, database, api keys)
+Created: APP_NAME, APP_ENV, DATABASE_URL, DB_PASSWORD, STRIPE_KEY, SENDGRID_KEY
+Done. 6 secrets imported.
+```
+
+**Example (with team sharing):**
+```bash
+imitsu import .env.staging -t engineering
+```
+
+**Output:**
+```
+Parsed 6 entries from .env.staging (3 sections: application, database, api keys)
+Created: APP_NAME, APP_ENV, DATABASE_URL, DB_PASSWORD, STRIPE_KEY, SENDGRID_KEY
+Done. 6 secrets imported.
+Shared with team "engineering" (read access)
+```
+
+**Updating existing secrets:**
+
+If a secret with the same name already exists, it will be updated:
+
+```
+Parsed 6 entries from .env (2 sections: application, database)
+Updated: DATABASE_URL, DB_PASSWORD
+Created: APP_NAME, APP_ENV
+Done. 4 secrets imported.
+```
+
+**Errors:**
+
+File not found:
+```
+File not found: /path/to/.env
+```
+
+Empty file:
+```
+No secrets found in file
+```
+
+Team not found:
+```
+Team not found: unknown-team. Create it first with: vault team create <name>
+```
+
+---
+
+## Exporting Secrets
+
+### export
+
+Export secrets in `.env` format, automatically grouped by category.
+
+```bash
+imitsu export [file]
+```
+
+<ParamField path="file" type="string">
+  Output file path. If omitted, prints to stdout
+</ParamField>
+
+<ParamField path="-c, --category" type="string">
+  Filter by specific category (exports only secrets in that category)
+</ParamField>
+
+**Example (to stdout):**
+```bash
+imitsu export
+```
+
+**Output:**
+```env
+###########################
+### Application
+###########################
+APP_NAME=MyApp
+APP_ENV=production
+
+###########################
+### Database
+###########################
+DATABASE_URL=postgresql://localhost/mydb
+DB_PASSWORD=secretpass
+
+###########################
+### Api keys
+###########################
+STRIPE_KEY=sk_test_123
+SENDGRID_KEY=SG.abc123
+```
+
+**Example (to file):**
+```bash
+imitsu export .env.backup
+```
+
+**Output:**
+```
+Exported 6 secrets to /path/to/.env.backup
+```
+
+The file is created with secure permissions (mode `0600`, readable/writable by owner only).
+
+**Example (filter by category):**
+```bash
+imitsu export .env.db -c database
+```
+
+**Output:**
+```
+Exported 2 secrets to /path/to/.env.db
+```
+
+**File contents:**
+```env
+###########################
+### Database
+###########################
+DATABASE_URL=postgresql://localhost/mydb
+DB_PASSWORD=secretpass
+```
+
+**Example (piping to other commands):**
+```bash
+imitsu export | grep DATABASE
+```
+
+**Output:**
+```
+DATABASE_URL=postgresql://localhost/mydb
+```
+
+**Error (no secrets):**
+```
+No secrets to export
+```
+
+---
+
+## Import/Export Workflow Examples
+
+### Migrating from .env files
+
+```bash
+# Import your existing environment files
+imitsu import .env.production -t engineering
+imitsu import .env.staging -t qa
+
+# Verify import
+imitsu ls
+```
+
+### Backing up secrets
+
+```bash
+# Export all secrets
+imitsu export backup-$(date +%Y%m%d).env
+
+# Export specific category
+imitsu export database-backup.env -c database
+```
+
+### Syncing between environments
+
+```bash
+# Export from one vault
+imitsu export staging-secrets.env -c staging
+
+# Switch servers and import
+imitsu server https://vault-prod.example.com
+imitsu login admin@example.com
+imitsu import staging-secrets.env
+```
+
+### Using in CI/CD pipelines
+
+```bash
+#!/bin/bash
+# Export secrets and load into environment
+eval $(imitsu export | grep -v '^#')
+
+# Or export to file for docker-compose
+imitsu export .env.production
+docker-compose --env-file .env.production up
+```
+
+---
+
+## Category Organization Tips
+
+**Good category structure:**
+```env
+### Application
+APP_NAME=MyApp
+APP_ENV=production
+
+### Database
+DATABASE_URL=postgresql://...
+REDIS_URL=redis://...
+
+### External APIs
+STRIPE_KEY=sk_...
+SENDGRID_KEY=SG...
+AWS_ACCESS_KEY=AKIA...
+
+### Auth
+JWT_SECRET=...
+SESSION_SECRET=...
+```
+
+**Common categories:**
+- `application` - App configuration
+- `database` - Database credentials
+- `api` or `external apis` - Third-party API keys
+- `auth` or `authentication` - Auth secrets
+- `payment` - Payment gateway keys
+- `monitoring` - Monitoring service credentials
+- `infrastructure` - Cloud provider credentials
+
+---
+
+## File Format Details
+
+**Supported formats:**
+- Standard `.env` format: `KEY=value`
+- Quoted values: `KEY="value"` or `KEY='value'`
+- Comments as category headers: `# Category`, `## Category`, `### Category ###`
+- Blank lines (ignored)
+- Inline comments (not supported - will be treated as part of value)
+
+**Value parsing:**
+- Surrounding quotes are stripped automatically
+- Values can contain `=` characters
+- Multi-line values are not supported
+- Variable substitution is not supported
+
+**Security:**
+- Exported files are created with mode `0600` (owner read/write only)
+- Passwords are never logged or displayed
+- Import/export operations are logged in audit logs (admin only)

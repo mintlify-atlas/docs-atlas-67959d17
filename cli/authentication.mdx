@@ -1,0 +1,156 @@
+---
+title: "Authentication"
+description: "Register, login, and manage your imitsu vault credentials"
+---
+
+## Overview
+
+imitsu requires authentication to access your team's secrets. Use these commands to manage your account and sessions.
+
+## Server Configuration
+
+Before authenticating, configure your vault server URL.
+
+### server
+
+Set the vault server URL.
+
+```bash
+imitsu server <url>
+```
+
+<ParamField path="url" type="string" required>
+  The vault server URL (e.g., https://vault.company.com)
+</ParamField>
+
+**Example:**
+```bash
+imitsu server https://vault.example.com
+```
+
+**Output:**
+```
+Server set to https://vault.example.com
+```
+
+---
+
+## Registration
+
+### register
+
+Create a new account on the vault server.
+
+```bash
+imitsu register -e <email> -n <name>
+```
+
+<ParamField path="-e, --email" type="string" required>
+  Your email address
+</ParamField>
+
+<ParamField path="-n, --name" type="string" required>
+  Your full name
+</ParamField>
+
+After running the command, you'll be prompted to enter and confirm a password (minimum 12 characters).
+
+**Example:**
+```bash
+imitsu register -e alice@example.com -n "Alice Smith"
+```
+
+**Interactive prompts:**
+```
+Password (min 12 chars): 
+Confirm password: 
+```
+
+**Output:**
+```
+Registered! Role: user
+```
+
+**First user:**
+If you're the first user to register, you'll automatically be assigned the admin role:
+```
+Registered! Role: admin
+You are the first user — you've been made admin.
+```
+
+---
+
+## Login & Logout
+
+### login
+
+Authenticate with the vault server.
+
+```bash
+imitsu login <email>
+```
+
+<ParamField path="email" type="string" required>
+  Your registered email address
+</ParamField>
+
+You'll be prompted to enter your password securely.
+
+**Example:**
+```bash
+imitsu login alice@example.com
+```
+
+**Interactive prompt:**
+```
+Password: 
+```
+
+**Output:**
+```
+Logged in as alice@example.com (user)
+```
+
+### logout
+
+Clear your saved credentials from the local machine.
+
+```bash
+imitsu logout
+```
+
+**Output:**
+```
+Logged out
+```
+
+---
+
+## Current User
+
+### whoami
+
+Display information about the currently authenticated user.
+
+```bash
+imitsu whoami
+```
+
+**Output (when logged in):**
+```
+Alice Smith <alice@example.com> (user)
+```
+
+**Output (when not logged in):**
+```
+Not logged in. Run: vault login <email>
+```
+
+---
+
+## Password Security
+
+- All password inputs use secure, non-echoing prompts
+- Passwords are never displayed on screen
+- Minimum password length is 12 characters
+- Credentials are stored locally after login for convenience

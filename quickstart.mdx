@@ -1,80 +1,457 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get up and running with imitsu in under 5 minutes
 ---
 
-## Get started in three steps
+This guide will take you from zero to storing and retrieving your first secret. You'll start a local server, create an account, and manage secrets using either the CLI or TUI.
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+## Prerequisites
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Make sure you've [installed](/installation) either the CLI (`imitsu`) or TUI (`itui`) before continuing.
 </Note>
+
+## Choose Your Path
+
+<CardGroup cols={2}>
+  <Card title="CLI Path" icon="terminal">
+    Command-line interface for scripts and automation
+  </Card>
+  <Card title="TUI Path" icon="window">
+    Interactive terminal UI with visual navigation
+  </Card>
+</CardGroup>
+
+---
+
+## CLI Quickstart
+
+<Steps>
+
+<Step title="Start the Server">
+
+First, clone the repository and start the imitsu server:
+
+```bash
+git clone https://github.com/adeleke5140/imitsu.git
+cd imitsu
+npm install
+npm run build
+```
+
+Start the server with required environment variables:
+
+```bash
+IMITSU_MASTER_KEY="your-secret-master-key-min-32-chars" \
+IMITSU_JWT_SECRET="your-jwt-secret-min-32-chars" \
+npm start
+```
+
+<Warning>
+  In production, use strong random values for `IMITSU_MASTER_KEY` and `IMITSU_JWT_SECRET`. Never commit these to version control.
+</Warning>
+
+You should see:
+
+```
+imitsu server running on port 3100
+Health check: http://localhost:3100/health
+```
+
+The server defaults to `http://localhost:3100`. You can change the port with `IMITSU_PORT`.
+
+</Step>
+
+<Step title="Register Your Account">
+
+In a new terminal, register as the first user (you'll automatically become admin):
+
+```bash
+imitsu register -e you@team.com -n "Your Name"
+```
+
+You'll be prompted to enter a password:
+
+```
+Password (min 12 chars): 
+Confirm password: 
+Registered! Role: admin
+You are the first user — you've been made admin.
+```
+
+<Note>
+  The first user to register automatically receives the `admin` role. Subsequent users get the `user` role by default.
+</Note>
+
+</Step>
+
+<Step title="Login">
+
+Authenticate with your new account:
+
+```bash
+imitsu login you@team.com
+```
+
+Enter your password:
+
+```
+Password: 
+Logged in as you@team.com (admin)
+```
+
+Your authentication token is saved to `~/.imitsu/config.json` for subsequent commands.
+
+</Step>
+
+<Step title="Create Your First Secret">
+
+Store a secret value:
+
+```bash
+imitsu set DATABASE_URL "postgresql://user:pass@localhost:5432/mydb"
+```
+
+Output:
+
+```
+Created: DATABASE_URL
+```
+
+You can also create secrets interactively (useful for passwords):
+
+```bash
+imitsu set API_KEY
+```
+
+You'll be prompted securely:
+
+```
+Secret value: 
+Created: API_KEY
+```
+
+</Step>
+
+<Step title="Retrieve Your Secret">
+
+Fetch the secret value:
+
+```bash
+imitsu get DATABASE_URL
+```
+
+Output:
+
+```
+postgresql://user:pass@localhost:5432/mydb
+```
+
+The output is pipeable, making it perfect for scripts:
+
+```bash
+export DATABASE_URL=$(imitsu get DATABASE_URL)
+```
+
+</Step>
+
+<Step title="List All Secrets">
+
+See all secrets you have access to:
+
+```bash
+imitsu ls
+```
+
+Output:
+
+```
+NAME                          CATEGORY       VER   UPDATED
+──────────────────────────────────────────────────────────────────────
+DATABASE_URL                  general        v1    2026-03-06T10:30:15Z
+API_KEY                       general        v1    2026-03-06T10:31:42Z
+```
+
+</Step>
+
+</Steps>
+
+### Next Steps with CLI
+
+Now that you have the basics down, try:
+
+<CardGroup cols={2}>
+  <Card title="Organize with Categories" icon="folder">
+    ```bash
+    imitsu set DB_PASSWORD -c database
+    imitsu set STRIPE_KEY -c payments
+    ```
+  </Card>
+  <Card title="Share with Teammates" icon="users">
+    ```bash
+    imitsu share DATABASE_URL -u dev@team.com -p read
+    ```
+  </Card>
+  <Card title="Create Teams" icon="user-group">
+    ```bash
+    imitsu team create backend
+    imitsu team add backend dev@team.com
+    ```
+  </Card>
+  <Card title="Import .env Files" icon="file-import">
+    ```bash
+    imitsu import .env.production -c production
+    ```
+  </Card>
+</CardGroup>
+
+---
+
+## TUI Quickstart
+
+<Steps>
+
+<Step title="Start the Server">
+
+If you haven't already, start the imitsu server:
+
+```bash
+git clone https://github.com/adeleke5140/imitsu.git
+cd imitsu
+npm install
+npm run build
+
+IMITSU_MASTER_KEY="your-secret-master-key-min-32-chars" \
+IMITSU_JWT_SECRET="your-jwt-secret-min-32-chars" \
+npm start
+```
+
+Wait for:
+
+```
+imitsu server running on port 3100
+Health check: http://localhost:3100/health
+```
+
+</Step>
+
+<Step title="Launch the TUI">
+
+Open a new terminal and start the interactive UI:
+
+```bash
+itui
+```
+
+You'll see the imitsu terminal interface with three main tabs:
+
+- **s** - Secrets (list, view, create, delete, export)
+- **t** - Teams (list teams, view members)
+- **a** - Account (login, register, server config, profile)
+
+On first launch, you'll land on the **Account** tab.
+
+</Step>
+
+<Step title="Configure Server URL">
+
+Use the arrow keys to navigate to **server** in the sidebar and press `Enter`.
+
+Enter the server URL:
+
+```
+http://localhost:3100
+```
+
+Press `Enter` to save. The TUI will validate the connection.
+
+</Step>
+
+<Step title="Register Your Account">
+
+Navigate to **register** in the Account sidebar and press `Enter`.
+
+Fill in the form:
+- Email: `you@team.com`
+- Name: `Your Name`
+- Password: (minimum 12 characters)
+
+Press `Tab` to move between fields. Press `Enter` to submit.
+
+You'll see a confirmation:
+
+```
+Registered! Role: admin
+You are the first user — you've been made admin.
+```
+
+</Step>
+
+<Step title="Create a Secret">
+
+The TUI will automatically switch to the **Secrets** tab after login.
+
+Press `n` to create a new secret.
+
+Fill in the form:
+- Name: `DATABASE_URL`
+- Value: `postgresql://user:pass@localhost:5432/mydb`
+- Category: `general` (default)
+
+Press `Enter` to save.
+
+</Step>
+
+<Step title="View Your Secret">
+
+You'll see your new secret in the list:
+
+```
+NAME              CATEGORY    VER
+──────────────────────────────────
+DATABASE_URL      general     v1
+```
+
+Use `j` and `k` to navigate up and down, then press `Enter` to view details.
+
+In the detail view:
+- Press `d` to delete
+- Press `esc` to go back to the list
+
+</Step>
+
+</Steps>
+
+### TUI Keybindings Reference
+
+<AccordionGroup>
+  <Accordion title="Global Keys">
+    | Key | Action |
+    |-----|--------|
+    | `s` | Switch to Secrets tab |
+    | `t` | Switch to Teams tab |
+    | `a` | Switch to Account tab |
+    | `q` | Quit |
+    | `ctrl+l` | Logout |
+  </Accordion>
+  
+  <Accordion title="Secrets Tab">
+    | Key | Action |
+    |-----|--------|
+    | `j` / `k` | Navigate up/down |
+    | `enter` | View secret detail |
+    | `n` | Create new secret |
+    | `e` | Export secrets to .env file |
+    | `d` | Delete (in detail view) |
+    | `r` | Refresh list |
+    | `esc` | Go back |
+  </Accordion>
+  
+  <Accordion title="Account Tab">
+    | Key | Action |
+    |-----|--------|
+    | `j` / `k` | Navigate sidebar |
+    | `enter` | Select pane |
+    | `tab` | Next form field |
+    | `esc` | Back to sidebar |
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## What's Next?
+
+<CardGroup cols={3}>
+  <Card title="CLI Reference" icon="terminal" href="/cli/authentication">
+    Complete command reference and examples
+  </Card>
+  <Card title="Team Workflows" icon="users" href="/guides/team-workflow">
+    Set up team sharing and collaboration
+  </Card>
+  <Card title="Production Setup" icon="server" href="/deployment/production-checklist">
+    Deploy imitsu securely in production
+  </Card>
+</CardGroup>
+
+## Common Next Steps
+
+### Import Existing Secrets
+
+If you have a `.env` file, import it in bulk:
+
+```bash
+imitsu import .env.production -c production
+```
+
+Section headers in your `.env` file become categories automatically:
+
+```bash
+### Database ###
+DB_HOST=localhost
+DB_PASSWORD=secret123
+
+### API Keys ###
+STRIPE_KEY=sk_test_...
+SENDGRID_KEY=SG...
+```
+
+### Export for Local Development
+
+Export secrets back to a `.env` file:
+
+```bash
+imitsu export .env.local
+```
+
+Or pipe directly to your environment:
+
+```bash
+eval $(imitsu export | sed 's/^/export /')
+```
+
+### Set Up Team Access
+
+```bash
+# Create a team
+imitsu team create backend
+
+# Add members
+imitsu team add backend dev@team.com
+
+# Share secrets with the team
+imitsu share-team DATABASE_URL backend -p read
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Connection refused error">
+    Make sure the server is running on the correct port:
+    
+    ```bash
+    # Check health endpoint
+    curl http://localhost:3100/health
+    ```
+    
+    If you changed the port, update your client configuration:
+    
+    ```bash
+    imitsu server http://localhost:YOUR_PORT
+    ```
+  </Accordion>
+  
+  <Accordion title="Authentication errors">
+    Your token may have expired (8-hour expiry). Login again:
+    
+    ```bash
+    imitsu login your@email.com
+    ```
+  </Accordion>
+  
+  <Accordion title="Password requirements">
+    Passwords must be at least 12 characters. imitsu uses Argon2id hashing with:
+    - 65MB memory cost
+    - 3 iterations
+    - Parallelism: 4
+  </Accordion>
+</AccordionGroup>

@@ -1,0 +1,113 @@
+---
+title: TUI Installation
+description: Install the imitsu TUI on macOS and Linux
+---
+
+# TUI Installation
+
+The imitsu TUI (`itui`) can be installed via the automated install script, Go's package manager, or by building from source.
+
+## System Requirements
+
+- **Operating System**: macOS or Linux
+- **Architecture**: amd64 (x86_64) or arm64 (aarch64)
+- **Terminal**: Any modern terminal emulator with Unicode support
+
+<Tabs>
+  <Tab title="Install Script (Recommended)">
+    The quickest way to install `itui` is using the automated install script. This downloads the latest release binary for your platform:
+
+    ```sh
+    curl -fsSL https://raw.githubusercontent.com/adeleke5140/imitsu/main/install.sh | sh
+    ```
+
+    The script will:
+    - Detect your OS and architecture automatically
+    - Download the latest release binary
+    - Install to `/usr/local/bin/itui` (may prompt for sudo)
+
+    <Note>
+    The install script requires `curl` and will automatically use `sudo` if `/usr/local/bin` requires elevated permissions.
+    </Note>
+
+    Verify the installation:
+
+    ```sh
+    itui --version
+    ```
+  </Tab>
+
+  <Tab title="Go Install">
+    If you have Go installed (version 1.19 or later), you can install `itui` directly:
+
+    ```sh
+    go install github.com/adeleke5140/imitsu/tui@latest
+    ```
+
+    This installs the binary to your `$GOPATH/bin` directory. Make sure this directory is in your `PATH`:
+
+    ```sh
+    export PATH="$PATH:$(go env GOPATH)/bin"
+    ```
+
+    Add this line to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to make it permanent.
+  </Tab>
+
+  <Tab title="Build from Source">
+    To build from source, you'll need Go 1.19 or later:
+
+    ```sh
+    # Clone the repository
+    git clone https://github.com/adeleke5140/imitsu.git
+    cd imitsu/src/tui
+
+    # Build the binary
+    go build -o itui .
+
+    # Move to a directory in your PATH
+    sudo mv itui /usr/local/bin/
+    ```
+
+    <Note>
+    Building from source gives you the latest development version, which may include unreleased features and bug fixes.
+    </Note>
+  </Tab>
+</Tabs>
+
+## First Run
+
+After installation, launch the TUI:
+
+```sh
+itui
+```
+
+On first run, you'll need to configure your imitsu server and authenticate:
+
+1. Press `a` to open the Account tab
+2. Navigate to **server** and enter your imitsu server URL
+3. Choose **register** to create a new account or **login** if you have existing credentials
+
+<Note>
+Configuration is stored in `~/.imitsu/config.json` and shared with the imitsu CLI. If you've already configured the CLI with `imitsu server <url>` and `imitsu login`, the TUI will use those settings automatically.
+</Note>
+
+## Troubleshooting
+
+### Command not found
+
+If you see `command not found: itui`, the binary is not in your `PATH`. Either:
+
+- Use the full path: `/usr/local/bin/itui`
+- Add `/usr/local/bin` to your `PATH`:
+  ```sh
+  export PATH="$PATH:/usr/local/bin"
+  ```
+
+### Permission denied
+
+If the install script fails with permission errors, ensure you have write access to `/usr/local/bin` or run with appropriate permissions.
+
+### Unsupported platform
+
+The install script and pre-built binaries support macOS and Linux on amd64 and arm64 architectures. For other platforms, you'll need to build from source.

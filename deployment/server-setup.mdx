@@ -1,0 +1,172 @@
+---
+title: 'Server Setup'
+description: 'Manual server installation and systemd service configuration'
+---
+
+## Prerequisites
+
+- Node.js 22 or higher
+- npm or compatible package manager
+- SQLite support (built-in with Node.js)
+
+## Manual Installation
+
+<Steps>
+  <Step title="Clone and install dependencies">
+    ```bash
+    git clone https://github.com/adeleke5140/imitsu.git
+    cd imitsu
+    npm install
+    ```
+  </Step>
+
+  <Step title="Build the project">
+    Compile TypeScript to JavaScript:
+    
+    ```bash
+    npm run build
+    ```
+    
+    This runs `tsc` and outputs to the `dist/` directory.
+  </Step>
+
+  <Step title="Configure environment variables">
+    Copy the example environment file and edit it:
+    
+    ```bash
+    cp .env.example .env
+    ```
+    
+    <Warning>
+      **Required in production:** Set strong random values for `IMITSU_MASTER_KEY` and `IMITSU_JWT_SECRET`.
+      See [Configuration](/deployment/configuration) for details.
+    </Warning>
+  </Step>
+
+  <Step title="Start the server">
+    ```bash
+    npm start
+    ```
+    
+    The server runs on `http://localhost:3100` by default.
+  </Step>
+
+  <Step title="Create the first admin user">
+    The first registered user automatically becomes admin:
+    
+    ```bash
+    imitsu register -e admin@company.com -n "Admin User"
+    imitsu login admin@company.com
+    ```
+  </Step>
+</Steps>
+
+## Systemd Service
+
+For production deployments, run imitsu as a systemd service for automatic restarts and logging.
+
+### Service Configuration
+
+Create `/etc/systemd/system/imitsu.service`:
+
+```ini
+[Unit]
+Description=Imitsu Secret Manager
+After=network.target
+
+[Service]
+Type=simple
+User=imitsu
+Group=imitsu
+WorkingDirectory=/opt/imitsu
+Environment="NODE_ENV=production"
+EnvironmentFile=/opt/imitsu/.env
+ExecStart=/usr/bin/node dist/server/index.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/imitsu/data
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### Setup Steps
+
+<Steps>
+  <Step title="Create service user">
+    ```bash
+    sudo useradd -r -s /bin/false imitsu
+    ```
+  </Step>
+
+  <Step title="Set up application directory">
+    ```bash
+    sudo mkdir -p /opt/imitsu/data
+    sudo cp -r dist package.json package-lock.json node_modules /opt/imitsu/
+    sudo cp .env /opt/imitsu/
+    sudo chown -R imitsu:imitsu /opt/imitsu
+    ```
+  </Step>
+
+  <Step title="Enable and start the service">
+    ```bash
+    sudo systemctl daemon-reload
+    sudo systemctl enable imitsu
+    sudo systemctl start imitsu
+    ```
+  </Step>
+
+  <Step title="Verify the service is running">
+    ```bash
+    sudo systemctl status imitsu
+    sudo journalctl -u imitsu -f
+    ```
+  </Step>
+</Steps>
+
+## Updating the Server
+
+<Steps>
+  <Step title="Pull latest changes">
+    ```bash
+    cd /opt/imitsu
+    git pull
+    npm install
+    npm run build
+    ```
+  </Step>
+
+  <Step title="Restart the service">
+    ```bash
+    sudo systemctl restart imitsu
+    ```
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### Check logs
+
+```bash
+sudo journalctl -u imitsu -n 100 --no-pager
+```
+
+### Common issues
+
+- **Port already in use**: Change `IMITSU_PORT` in your `.env` file
+- **Database permission errors**: Ensure the service user has write access to `IMITSU_DB_PATH`
+- **Module not found**: Run `npm install` in the application directory
+
+## Next Steps
+
+- [Configure environment variables](/deployment/configuration)
+- [Review the production checklist](/deployment/production-checklist)
+- Set up HTTPS with nginx or Caddy

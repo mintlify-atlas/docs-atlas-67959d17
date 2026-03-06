@@ -1,0 +1,172 @@
+---
+title: TUI Usage Guide
+description: Complete guide to keybindings, navigation, and workflows in the imitsu TUI
+---
+
+# TUI Usage Guide
+
+This guide covers all keybindings, tab navigation, and common workflows in the imitsu TUI.
+
+## Tab Navigation
+
+The TUI is organized into three main tabs. Press the corresponding key to switch tabs:
+
+| Key | Tab | Description |
+|-----|-----|-------------|
+| `s` | Secrets | List, view, create, delete, and export secrets |
+| `t` | Teams | View teams and team members |
+| `a` | Account | Login, register, server config, and profile |
+
+<Note>
+You can switch tabs at any time by pressing `s`, `t`, or `a`, regardless of which view you're currently in.
+</Note>
+
+## Keybindings
+
+### Global Keybindings
+
+These keys work from anywhere in the TUI:
+
+| Key | Action |
+|-----|--------|
+| `s` | Switch to Secrets tab |
+| `t` | Switch to Teams tab |
+| `a` | Switch to Account tab |
+| `q` | Quit the TUI |
+| `ctrl+l` | Logout from current session |
+
+### Secrets Tab
+
+Keybindings available in the Secrets view:
+
+| Key | Action |
+|-----|--------|
+| `j` | Navigate down in the list |
+| `k` | Navigate up in the list |
+| `enter` | View secret detail |
+| `n` | Create a new secret |
+| `e` | Export secrets to `.env` file |
+| `d` | Delete secret (when viewing detail) |
+| `r` | Refresh the secrets list |
+| `esc` | Go back to list view |
+
+<Note>
+The `j` and `k` keys follow vim-style navigation. If you prefer arrow keys, those work too!
+</Note>
+
+### Teams Tab
+
+Keybindings for the Teams view:
+
+| Key | Action |
+|-----|--------|
+| `j` | Navigate down in the list |
+| `k` | Navigate up in the list |
+| `enter` | View team members |
+| `r` | Refresh the teams list |
+| `esc` | Go back to list view |
+
+### Account Tab
+
+The Account tab has a sidebar with multiple sections:
+
+| Key | Action |
+|-----|--------|
+| `j` | Navigate down in sidebar |
+| `k` | Navigate up in sidebar |
+| `enter` | Select sidebar item |
+| `tab` | Move to next form field |
+| `esc` | Return to sidebar |
+
+## Common Workflows
+
+### Setting Up for the First Time
+
+1. Launch `itui`
+2. Press `a` to open the Account tab
+3. Navigate to **server** with `j`/`k` and press `enter`
+4. Enter your imitsu server URL
+5. Navigate to **register** and press `enter`
+6. Fill out the registration form using `tab` to move between fields
+7. Submit the form
+8. You'll be automatically switched to the Secrets tab
+
+### Creating a New Secret
+
+1. Press `s` to open the Secrets tab
+2. Press `n` to create a new secret
+3. Fill in the secret name and value using `tab` to navigate fields
+4. Submit the form
+5. The new secret appears in your list
+
+### Viewing Secret Details
+
+1. In the Secrets tab, use `j`/`k` to navigate to a secret
+2. Press `enter` to view full details
+3. Press `esc` to return to the list
+
+### Deleting a Secret
+
+1. Navigate to a secret and press `enter` to view details
+2. Press `d` to delete
+3. Confirm the deletion when prompted
+4. Press `esc` to return to the list
+
+### Exporting Secrets to .env File
+
+1. In the Secrets tab, press `e`
+2. The TUI will export all secrets to a `.env` file
+3. A confirmation message shows the export location
+
+<Note>
+The export functionality creates a `.env` file in your current working directory with all secrets in `KEY=value` format.
+</Note>
+
+### Viewing Team Members
+
+1. Press `t` to open the Teams tab
+2. Use `j`/`k` to navigate to a team
+3. Press `enter` to view team members
+4. Press `esc` to return to the teams list
+
+### Logging Out
+
+1. Press `ctrl+l` from anywhere in the TUI
+2. Your session will be cleared
+3. You'll return to the Account tab
+
+### Refreshing Data
+
+If you've made changes via the CLI or web interface:
+
+1. In the Secrets or Teams tab, press `r` to refresh
+2. The view will update with the latest data
+
+## Tips and Tricks
+
+- **Shared session**: The TUI shares authentication with the CLI. Log in once with either tool and both will work.
+- **Vim navigation**: If you're familiar with vim, `j`/`k` navigation will feel natural. Arrow keys also work.
+- **Quick switching**: Use `s`, `t`, `a` to quickly jump between tabs without navigating through menus.
+- **ESC to go back**: When in doubt, press `esc` to return to the previous view or sidebar.
+- **Form navigation**: Use `tab` to move forward through form fields and `shift+tab` to move backward.
+
+## Configuration File
+
+The TUI stores configuration in `~/.imitsu/config.json`:
+
+```json
+{
+  "server": "https://your-imitsu-server.com",
+  "token": "your-auth-token",
+  "user": {
+    "id": "user-id",
+    "email": "you@example.com"
+  }
+}
+```
+
+This file is shared with the imitsu CLI, so both tools use the same server and authentication settings.
+
+<Note>
+You typically don't need to edit this file manually. The TUI and CLI both update it automatically when you configure settings or authenticate.
+</Note>

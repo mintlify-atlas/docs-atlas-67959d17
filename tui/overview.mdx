@@ -1,0 +1,61 @@
+---
+title: TUI Overview
+description: Interactive terminal interface for imitsu secret management
+---
+
+# TUI Overview
+
+The imitsu TUI (`itui`) is an interactive terminal user interface for managing secrets, teams, and accounts. Built with Go and [Bubble Tea](https://github.com/charmbracelet/bubbletea), it provides a fast, keyboard-driven experience for working with imitsu.
+
+## Features
+
+- **Secrets Management**: List, view, create, delete, and export secrets to `.env` files
+- **Team Collaboration**: View teams and team members
+- **Account Management**: Register, login, configure server, and manage profile
+- **Keyboard-Driven**: Fast navigation with vim-style keybindings
+- **Shared Configuration**: Uses `~/.imitsu/config.json` shared with the CLI
+- **Cross-Platform**: Supports macOS and Linux (amd64 + arm64)
+
+## TUI vs CLI
+
+### When to Use the TUI
+
+- **Interactive workflows**: Browse and explore secrets, teams, and settings
+- **Visual feedback**: See all secrets at a glance with easy navigation
+- **Multi-step operations**: Navigate between tabs and views without typing commands
+- **Quick exploration**: Ideal for discovering what secrets exist and their structure
+
+### When to Use the CLI
+
+- **Automation**: Scripts and CI/CD pipelines
+- **Single operations**: Quick one-off commands like `imitsu get API_KEY`
+- **Programmatic access**: Integration with other tools via shell scripts
+- **Remote sessions**: SSH environments where a full TUI might not render well
+
+<Note>
+Both the TUI and CLI share the same configuration file (`~/.imitsu/config.json`). If you've already authenticated with the CLI, the TUI will pick up your session automatically.
+</Note>
+
+## Quick Start
+
+After [installation](/tui/installation), launch the TUI:
+
+```sh
+itui
+```
+
+On first launch:
+
+1. Navigate to the **server** section and set your imitsu server URL
+2. Go to **register** to create an account (or **login** if you already have one)
+3. Once authenticated, you'll automatically switch to the **secrets** tab
+
+## Interface Layout
+
+The TUI is organized into three main tabs:
+
+- **Secrets** (`s`) — List, view, create, delete, and export secrets
+- **Teams** (`t`) — View teams and their members
+- **Account** (`a`) — Login, register, server configuration, and profile management
+
+Press `s`, `t`, or `a` at any time to switch between tabs. Press `q` to quit.

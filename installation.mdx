@@ -1,0 +1,174 @@
+---
+title: Installation
+description: Install imitsu CLI and TUI on your system
+---
+
+imitsu provides two interfaces: a Node.js CLI (`imitsu`) and a Go-based terminal UI (`itui`). You can use either or both depending on your workflow.
+
+## System Requirements
+
+<CardGroup cols={2}>
+  <Card title="CLI Requirements" icon="terminal">
+    - Node.js 16+ with npm
+    - Works on macOS, Linux, and Windows
+  </Card>
+  <Card title="TUI Requirements" icon="window">
+    - macOS or Linux
+    - amd64 or arm64 architecture
+    - No dependencies required
+  </Card>
+</CardGroup>
+
+## Install CLI
+
+The `imitsu` CLI is distributed as an npm package and works on any platform with Node.js installed.
+
+<CodeGroup>
+
+```bash npm
+npm install -g imitsu
+```
+
+```bash npx
+# Use without installing (recommended for trying it out)
+npx imitsu --help
+```
+
+```bash pnpm
+pnpm add -g imitsu
+```
+
+```bash yarn
+yarn global add imitsu
+```
+
+</CodeGroup>
+
+### Verify CLI Installation
+
+Check that the CLI is installed correctly:
+
+```bash
+imitsu --version
+```
+
+You should see output like:
+
+```
+0.0.6
+```
+
+<Note>
+  The CLI stores configuration in `~/.imitsu/config.json` including server URL and auth tokens.
+</Note>
+
+## Install TUI
+
+The `itui` terminal UI is a standalone Go binary with an interactive interface built with [Bubble Tea](https://github.com/charmbracelet/bubbletea).
+
+### Quick Install (Recommended)
+
+Use the installation script to automatically download the latest release for your platform:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/adeleke5140/imitsu/main/install.sh | sh
+```
+
+The script will:
+1. Detect your OS (macOS or Linux) and architecture (amd64 or arm64)
+2. Download the latest release binary
+3. Install to `/usr/local/bin/itui` (may prompt for sudo)
+
+### Alternative: Install with Go
+
+If you have Go 1.21+ installed:
+
+```bash
+go install github.com/adeleke5140/imitsu/tui@latest
+```
+
+### Alternative: Build from Source
+
+Clone the repository and build manually:
+
+```bash
+git clone https://github.com/adeleke5140/imitsu.git
+cd imitsu/src/tui
+go build -o itui .
+sudo mv itui /usr/local/bin/
+```
+
+### Verify TUI Installation
+
+Check that the TUI is installed:
+
+```bash
+which itui
+```
+
+You should see:
+
+```
+/usr/local/bin/itui
+```
+
+<Note>
+  The TUI shares configuration with the CLI in `~/.imitsu/config.json`. If you've already configured the CLI, the TUI will pick up your session automatically.
+</Note>
+
+## Supported Platforms
+
+| Interface | macOS | Linux | Windows |
+|-----------|-------|-------|----------|
+| **CLI** (`imitsu`) | ✓ | ✓ | ✓ |
+| **TUI** (`itui`) | ✓ (amd64, arm64) | ✓ (amd64, arm64) | ✗ |
+
+<Warning>
+  The TUI (`itui`) is not available on Windows. Use the CLI or WSL2 instead.
+</Warning>
+
+## Update
+
+<CodeGroup>
+
+```bash Update CLI
+npm update -g imitsu
+```
+
+```bash Update TUI
+# Re-run the install script to get the latest version
+curl -fsSL https://raw.githubusercontent.com/adeleke5140/imitsu/main/install.sh | sh
+```
+
+</CodeGroup>
+
+## Uninstall
+
+<CodeGroup>
+
+```bash Uninstall CLI
+npm uninstall -g imitsu
+
+# Optionally remove configuration
+rm -rf ~/.imitsu
+```
+
+```bash Uninstall TUI
+sudo rm /usr/local/bin/itui
+
+# Optionally remove configuration (shared with CLI)
+rm -rf ~/.imitsu
+```
+
+</CodeGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get started with your first secret in under 5 minutes
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/cli/authentication">
+    Complete command reference for the CLI
+  </Card>
+</CardGroup>

@@ -1,0 +1,257 @@
+---
+title: Security
+description: Security architecture and implementation details for imitsu
+---
+
+imitsu is built with security as a core principle. This guide explains the security measures implemented throughout the system.
+
+## Encryption
+
+### Algorithm: AES-256-GCM
+
+All secrets are encrypted using **AES-256-GCM** (Galois/Counter Mode), which provides:
+
+- **Confidentiality**: 256-bit encryption strength
+- **Authenticity**: Built-in authentication tags prevent tampering
+- **Integrity**: Detects any modifications to encrypted data
+
+### Per-Secret Salts and IVs
+
+Each secret gets unique cryptographic parameters:
+
+- **Salt**: 32 bytes (256 bits) of random data per secret
+- **IV (Initialization Vector)**: 16 bytes (128 bits) of random data per secret
+- **Auth Tag**: 16 bytes generated during encryption for integrity verification
+
+This ensures that identical plaintext values produce different ciphertext, preventing pattern analysis attacks.
+
+### Key Derivation: HKDF-SHA512
+
+Encryption keys are derived from the master key using **HKDF** (HMAC-based Key Derivation Function) with SHA-512:
+
+```typescript
+function deriveKey(masterKey: string, salt: Buffer): Buffer {
+  return crypto.hkdfSync("sha512", masterKey, salt, "imitsu", 32);
+}
+```
+
+Benefits:
+- Master key is never used directly for encryption
+- Each secret has a unique derived key based on its salt
+- Compromising one secret doesn't compromise others
+- SHA-512 provides 512-bit hash output for maximum security
+
+<Warning>
+  The master key (`IMITSU_MASTER_KEY`) must be kept secure and never changed after secrets are stored. Losing or changing this key makes all secrets permanently unrecoverable.
+</Warning>
+
+## Password Security
+
+### Hashing Algorithm: Argon2id
+
+User passwords are hashed using **Argon2id**, the winner of the Password Hashing Competition and recommended by OWASP:
+
+```typescript
+argon2.hash(password, {
+  type: argon2.argon2id,
+  memoryCost: 65536,    // 64 MB
+  timeCost: 3,          // 3 iterations
+  parallelism: 4,       // 4 threads
+});
+```
+
+### Parameters Explained
+
+- **Type**: `argon2id` - Hybrid mode resistant to both side-channel and GPU attacks
+- **Memory Cost**: `65536 KB (64 MB)` - Makes brute-force attacks expensive
+- **Time Cost**: `3 iterations` - Balances security with login performance
+- **Parallelism**: `4 threads` - Utilizes multiple CPU cores
+
+These parameters make password cracking computationally expensive while keeping login times reasonable (typically < 500ms).
+
+## Authentication
+
+### JWT (JSON Web Tokens)
+
+imitsu uses JWT for stateless authentication:
+
+- **Algorithm**: HMAC with SHA-256 (HS256)
+- **Expiry**: 8 hours
+- **Signing Key**: `IMITSU_JWT_SECRET` environment variable
+
+**Token Payload**:
+```json
+{
+  "userId": "uuid-v4",
+  "email": "user@example.com",
+  "role": "admin|member",
+  "iat": 1234567890,
+  "exp": 1234596690
+}
+```
+
+<Warning>
+  Set a strong, random value for `IMITSU_JWT_SECRET` in production. The default value "change-me-in-production" must never be used in production environments.
+</Warning>
+
+### Token Expiry
+
+Tokens expire after **8 hours**. After expiry, users must log in again:
+
+```bash
+imitsu login user@example.com
+```
+
+The CLI automatically handles token storage and includes it in API requests.
+
+## Rate Limiting
+
+The server implements rate limiting to prevent abuse:
+
+- **Limit**: 100 requests per minute
+- **Scope**: Per IP address
+- **Response**: HTTP 429 (Too Many Requests) when exceeded
+
+This protects against:
+- Brute-force password attacks
+- API abuse
+- Denial of service attempts
+
+## Access Control
+
+### Role-Based Access Control (RBAC)
+
+Two system-wide roles:
+
+1. **Admin**: First registered user; can view all users and audit logs
+2. **Member**: Standard users; can only access shared secrets
+
+### Per-Secret Permissions
+
+Each secret can have fine-grained permissions:
+
+- **Owner**: Full control (read, write, delete, share)
+- **Admin**: Can read, write, and share
+- **Write**: Can read and update
+- **Read**: Can only view the secret value
+
+### Team-Based Sharing
+
+Secrets can be shared with teams. All team members inherit the specified permission level:
+
+```bash
+imitsu share-team DATABASE_URL backend -p write
+```
+
+## Audit Trail
+
+Every security-relevant action is logged:
+
+- **Secret reads**: Who accessed which secret and when
+- **Secret writes**: Who created or updated secrets
+- **Shares**: Who shared secrets with whom
+- **Deletes**: Who deleted secrets
+- **Team changes**: Member additions and removals
+
+View audit logs:
+
+```bash
+imitsu audit          # View recent activity
+imitsu audit -l 50    # Last 50 entries
+```
+
+Audit logs are stored in the SQLite database and can be exported for compliance purposes.
+
+## Production Security Checklist
+
+<Warning>
+  Follow this checklist before deploying imitsu to production:
+</Warning>
+
+### Required
+
+- [ ] Set a strong random `IMITSU_MASTER_KEY` (32+ bytes)
+  ```bash
+  openssl rand -base64 32
+  ```
+
+- [ ] Set a strong random `IMITSU_JWT_SECRET` (32+ bytes)
+  ```bash
+  openssl rand -hex 32
+  ```
+
+- [ ] Run behind HTTPS (nginx, Caddy, or cloud load balancer)
+  - Never expose the API over plain HTTP in production
+  - Use TLS 1.2 or higher
+  - Use strong cipher suites
+
+- [ ] Back up `imitsu.db` regularly
+  - Automated daily backups
+  - Test restore procedures
+  - Store backups securely (encrypted)
+
+- [ ] Restrict network access
+  - Use firewall rules to limit access
+  - Consider VPN or private network for internal use
+  - Implement IP allowlisting if possible
+
+### Recommended
+
+- [ ] Enable database encryption at rest
+- [ ] Set up monitoring and alerting for suspicious activity
+- [ ] Regularly review audit logs
+- [ ] Implement backup retention policies
+- [ ] Document your security procedures
+- [ ] Perform regular security updates
+- [ ] Consider using a hardware security module (HSM) for the master key
+
+## Threat Model
+
+### Protected Against
+
+- **Brute-force password attacks**: Argon2id + rate limiting
+- **Token theft**: 8-hour expiry limits exposure
+- **Database compromise**: All secrets encrypted at rest
+- **Pattern analysis**: Unique salts and IVs per secret
+- **Tampering**: GCM auth tags verify integrity
+- **Replay attacks**: IVs prevent ciphertext reuse
+
+### Not Protected Against
+
+- **Master key compromise**: All secrets can be decrypted
+- **Memory dumps**: Keys in RAM during encryption/decryption
+- **Compromised admin accounts**: Admins can access all users/logs
+- **Physical server access**: Attacker could extract database and master key
+- **Side-channel attacks**: Requires additional hardware/software protections
+
+## Security Best Practices
+
+1. **Rotate secrets regularly**: Update sensitive values periodically
+2. **Use strong passwords**: Enforce password policies for users
+3. **Limit admin access**: Only grant admin role when necessary
+4. **Monitor audit logs**: Review regularly for suspicious activity
+5. **Principle of least privilege**: Share secrets with minimal required permissions
+6. **Secure the master key**: Use secret management systems like AWS Secrets Manager or HashiCorp Vault
+7. **Network isolation**: Deploy on private networks when possible
+8. **Regular updates**: Keep dependencies and system packages current
+
+## Incident Response
+
+If you suspect a security breach:
+
+1. **Isolate the server**: Disconnect from network if necessary
+2. **Review audit logs**: Check for unauthorized access
+3. **Rotate compromised secrets**: Update affected secrets immediately
+4. **Revoke tokens**: Force all users to log in again (restart server or rotate JWT_SECRET)
+5. **Investigate**: Determine breach scope and entry point
+6. **Document**: Record incident details for post-mortem
+7. **Notify affected parties**: If user data was compromised
+
+## Reporting Security Issues
+
+If you discover a security vulnerability in imitsu, please report it responsibly:
+
+- **Do not** open a public GitHub issue
+- Contact the maintainers privately
+- Provide detailed reproduction steps
+- Allow time for a fix before public disclosure
